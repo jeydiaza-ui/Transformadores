@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestión Transformadores</title>
+<style>
+*{box-sizing:border-box}
+body{font-family:system-ui,sans-serif;margin:0;background:#f2f4f7;color:#222}
+header{background:#1f3b5a;color:#fff;padding:12px 16px}
+header h1{margin:0;font-size:18px}
+nav{display:flex;flex-wrap:wrap;background:#2d5278}
+nav button{flex:1 1 auto;padding:10px 6px;border:0;background:none;color:#fff;font-size:14px;cursor:pointer}
+nav button.activa{background:#1f3b5a;font-weight:bold}
+main{padding:12px;max-width:900px;margin:auto}
+.card{background:#fff;border-radius:8px;padding:12px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.card h3{margin:0 0 8px}
+label{display:block;font-size:13px;margin-top:8px;color:#444}
+input,select,textarea{width:100%;padding:8px;margin-top:3px;border:1px solid #bbb;border-radius:5px;font-size:15px;font-family:inherit}
+.btn{background:#1f3b5a;color:#fff;border:0;padding:9px 14px;border-radius:5px;margin:10px 6px 0 0;cursor:pointer;font-size:14px}
+.btn.peligro{background:#b03a2e}
+.btn.suave{background:#6b7c8f}
+.fila{border-bottom:1px solid #eee;padding:10px 0}
+.fila:last-child{border-bottom:0}
+.fila .titulo{font-weight:bold}
+.etiqueta{display:inline-block;font-size:12px;background:#e3ecf5;padding:2px 8px;border-radius:10px;margin-right:4px}
+.alerta{background:#fdecea;color:#8a1c12}
+.fotos img{width:88px;height:88px;object-fit:cover;border-radius:5px;margin:4px 4px 0 0}
+.resumen{display:flex;gap:8px;flex-wrap:wrap}
+.resumen div{flex:1 1 130px;background:#e3ecf5;border-radius:6px;padding:8px;text-align:center}
+.resumen b{display:block;font-size:20px}
+.aviso{font-size:12px;color:#666;margin-top:6px}
+</style>
+</head>
+<body>
+<header><h1>Gestión de Transformadores</h1></header>
+<nav id="menu"></nav>
+<main id="contenido"></main>
+
+<script>
+const ETAPAS = ["Recibido","Diagnóstico","Cotizado","Aprobado","En reparación","Pruebas","Listo para entrega","Entregado"];
+const CATEGORIAS = ["Contable","SIIGO","Operativo","SST","Personal","Otro"];
+const VISTAS = {transformadores:"Transformadores", materiales:"Materiales", personal:"Personal", documentos:"Documentos", respaldo:"Respaldo"};
+const CLAVE = "gestionTransformadores";
+let vista = "transformadores";
+let db = cargar();
+
+/* ---------- Almacenamiento ---------- */
+function vacio(){ return {transformadores:[], materiales:[], personal:[], documentos:[]}; }
+function cargar(){
+  try { const d = localStorage.getItem(CLAVE); return d ? {...vacio(), ...JSON.parse(d)} : vacio(); }
+  catch(e){ return vacio(); }
+}
+function guardar(){
+  try { localStorage.setItem(CLAVE, JSON.stringify(db)); }
+  catch(e){ alert("El almacenamiento del navegador está lleno. Exporta un respaldo JSON y elimina fotos o documentos viejos."); }
+}
+
+/* ---------- Utilidades ---------- */
+function nuevoId(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function esc(t){ return String(t ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function dinero(n){ return "$" + Number(n || 0).toLocaleString("es-CO"); }
+function hoy(){ return new Date().toISOString().slice(0,10); }
+function leerArchivo(file){
+  return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(file); });
+}
+function comprimirImagen(file){
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const f = Math.min(1, 1024 / Math.max(img.width, img.height));
+        const c = document.createElement("canvas");
+        c.width = img.width * f; c.height = img.height * f;
+        c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+        res(c.toDataURL("image/jpeg", 0.7));
+      };
+      img.onerror = rej; img.src = r.result;
+    };
+    r.onerror = rej; r.readAsDataURL(file);
+  });
+}
+
+/* ---------- Menú ---------- */
+function pintarMenu(){
+  document.getElementById("menu").innerHTML = Object.entries(VISTAS).map(([k,v]) =>
+    `<button class="${k===vista?'activa':''}" data-vista="${k}">${v}</button>`).join("");
+}
+
+/* ---------- Transformadores ---------- */
+function vistaTransformadores(){
+  const t = db.transformadores;
+  const listos = t.filter(x => x.etapa === "Listo para entrega").length;
+  const enCurso = t.filter(x => x.etapa !== "Entregado").length;
+  return `
+  <div class="card resumen">
+    <div><b>${enCurso}</b>En taller</div>
+    <div class="${listos?'alerta':''}"><b>${listos}</b>Listos sin entregar</div>
+    <div><b>${t.length}</b>Total registrados</div>
+  </div>
+  <div class="card">
+    <h3>Nuevo transformador</h3>
+    <form data-accion="nuevoT">
+      <label>Placa / serie *<input name="placa" required></label>
+      <label>Cliente *<input name="cliente" required></label>
+      <label>Teléfono<input name="telefono"></label>
+      <label>kVA<input name="kva"></label>
+      <label>Voltaje<input name="voltaje"></label>
+      <label>Tipo<select name="tipo"><option>Aceite</option><option>Seco</option></select></label>
+      <label>Fecha de llegada<input type="date" name="llegada" value="${hoy()}"></label>
+      <label>Falla reportada<textarea name="falla" rows="2"></textarea></label>
+      <label>Valor cotizado<input type="number" name="valor" min="0"></label>
+      <label>Etapa<select name="etapa">${ETAPAS.map(e=>`<option>${e}</option>`).join("")}</select></label>
+      <label>Técnico asignado<input name="tecnico"></label>
+      <label>Fotos<input type="file" name="fotos" accept="image/*" multiple capture="environment"></label>
+      <button class="btn" type="submit">Guardar</button>
+    </form>
+  </div>
+  <div class="card">
+    <h3>Buscar</h3>
+    <input id="buscarT" placeholder="Placa, cliente, etapa o técnico">
+    <div id="listaT" style="margin-top:8px"></div>
+  </div>`;
+}
+function listaTransformadores(filtro=""){
+  const f = filtro.toLowerCase();
+  const items = db.transformadores
+    .filter(t => !f || [t.placa,t.cliente,t.etapa,t.tecnico].join(" ").toLowerCase().includes(f))
+    .sort((a,b) => (b.llegada||"").localeCompare(a.llegada||""));
+  if(!items.length) return `<p class="aviso">No hay transformadores que coincidan.</p>`;
+  return items.map(t => `
+    <div class="fila">
+      <div class="titulo">${esc(t.placa)} · ${esc(t.cliente)}</div>
+      <div class="aviso">${esc(t.kva)} kVA · ${esc(t.voltaje)} · ${esc(t.tipo)} · llegó ${esc(t.llegada)}</div>
+      <div class="aviso">Técnico: ${esc(t.tecnico||"sin asignar")} · Cotizado: ${dinero(t.valor)}</div>
+      <div class="aviso">${esc(t.falla)}</div>
+      <select data-accion="cambiarEtapa" data-id="${t.id}">
+        ${ETAPAS.map(e=>`<option ${e===t.etapa?'selected':''}>${e}</option>`).join("")}
+      </select>
+      <div class="fotos">${(t.fotos||[]).map(f=>`<img src="${f}">`).join("")}</div>
+      <button class="btn peligro" data-accion="borrarT" data-id="${t.id}">Eliminar</button>
+    </div>`).join("");
+}
+
+/* ---------- Materiales ---------- */
+function vistaMateriales(){
+  const total = db.materiales.reduce((s,m) => s + (m.cantidad||0)*(m.costo||0), 0);
+  return `
+  <div class="card resumen"><div><b>${db.materiales.length}</b>Materiales</div><div><b>${dinero(total)}</b>Valor en almacén</div></div>
+  <div class="card">
+    <h3>Nuevo material o herramienta</h3>
+    <form data-accion="nuevoM">
+      <label>Nombre *<input name="nombre" required placeholder="Cobre, aceite, aislador, alicate..."></label>
+      <label>Cantidad inicial<input type="number" name="cantidad" step="any" value="0"></label>
+      <label>Unidad<input name="unidad" placeholder="kg, litros, unidades"></label>
+      <label>Ubicación<input name="ubicacion" placeholder="Estante, bodega..."></label>
+      <label>Costo unitario<input type="number" name="costo" min="0"></label>
+      <label>Tipo<select name="tipo"><option>Material</option><option>Herramienta</option><option>Equipo</option></select></label>
+      <label>Foto<input type="file" name="foto" accept="image/*" capture="environment"></label>
+      <button class="btn" type="submit">Guardar</button>
+    </form>
+  </div>
+  <div class="card"><h3>Inventario</h3>${listaMateriales()}</div>`;
+}
+function listaMateriales(){
+  if(!db.materiales.length) return `<p class="aviso">Aún no hay materiales registrados.</p>`;
+  return db.materiales.map(m => `
+    <div class="fila">
+      <div class="titulo">${esc(m.nombre)} <span class="etiqueta">${esc(m.tipo)}</span></div>
+      <div class="aviso">Stock: <b>${m.cantidad} ${esc(m.unidad)}</b> · Ubicación: ${esc(m.ubicacion||"-")} · Valor: ${dinero((m.cantidad||0)*(m.costo||0))}</div>
+      <button class="btn" data-accion="movM" data-id="${m.id}" data-signo="1">+ Entrada</button>
+      <button class="btn suave" data-accion="movM" data-id="${m.id}" data-signo="-1">- Salida</button>
+      <button class="btn peligro" data-accion="borrarM" data-id="${m.id}">Eliminar</button>
+      <div class="fotos">${m.foto ? `<img src="${m.foto}">` : ""}</div>
+    </div>`).join("");
+}
+
+/* ---------- Personal ---------- */
+function vistaPersonal(){
+  return `
+  <div class="card">
+    <h3>Nueva persona</h3>
+    <form data-accion="nuevoP">
+      <label>Nombre *<input name="nombre" required></label>
+      <label>Cargo<input name="cargo" placeholder="Técnico, ayudante, administrativo"></label>
+      <label>Teléfono<input name="telefono"></label>
+      <label>Forma de pago<select name="tipoPago"><option>Salario mensual</option><option>Por trabajo</option><option>Por día</option></select></label>
+      <label>Valor pactado<input type="number" name="valor" min="0"></label>
+      <label>Afiliación (salud, pensión, ARL, caja)<textarea name="afiliacion" rows="2"></textarea></label>
+      <button class="btn" type="submit">Guardar</button>
+    </form>
+  </div>
+  <div class="card"><h3>Personal</h3>${listaPersonal()}</div>`;
+}
+function listaPersonal(){
+  if(!db.personal.length) return `<p class="aviso">Aún no hay personal registrado.</p>`;
+  return db.personal.map(p => {
+    const cajas = p.cajas || [];
+    const pendiente = cajas.filter(c => !c.legalizada).reduce((s,c)=>s+c.monto,0);
+    return `
+    <div class="fila">
+      <div class="titulo">${esc(p.nombre)} <span class="etiqueta">${esc(p.cargo)}</span></div>
+      <div class="aviso">${esc(p.tipoPago)}: ${dinero(p.valor)} · Tel: ${esc(p.telefono||"-")}</div>
+      <div class="aviso">Afiliación: ${esc(p.afiliacion||"-")}</div>
+      <div class="aviso ${pendiente?'alerta':''}">Cajas sin legalizar: <b>${dinero(pendiente)}</b></div>
+      ${cajas.map(c => `<div class="aviso">• ${esc(c.fecha)} ${dinero(c.monto)} ${esc(c.concepto)} ${c.legalizada?'✔':'<button class="btn" data-accion="legalizar" data-id="'+p.id+'" data-caja="'+c.id+'">Legalizar</button>'}</div>`).join("")}
+      <button class="btn" data-accion="nuevaCaja" data-id="${p.id}">+ Caja entregada</button>
+      <button class="btn peligro" data-accion="borrarP" data-id="${p.id}">Eliminar</button>
+    </div>`;
+  }).join("");
+}
+
+/* ---------- Documentos ---------- */
+function vistaDocumentos(){
+  return `
+  <div class="card">
+    <h3>Subir documento</h3>
+    <form data-accion="nuevoD">
+      <label>Archivo (PDF, Excel, Word, imagen) *<input type="file" name="archivo" required></label>
+      <label>Categoría<select name="categoria">${CATEGORIAS.map(c=>`<option>${c}</option>`).join("")}</select></label>
+      <label>Descripción<input name="descripcion" placeholder="Ej: Balance marzo 2026"></label>
+      <button class="btn" type="submit">Guardar</button>
+      <p class="aviso">Máximo 3 MB por archivo. Para archivos grandes, guárdalos en Drive o en la carpeta del computador.</p>
+    </form>
+  </div>
+  <div class="card"><h3>Documentos</h3>${listaDocumentos()}</div>`;
+}
+function listaDocumentos(){
+  if(!db.documentos.length) return `<p class="aviso">Aún no hay documentos.</p>`;
+  return db.documentos.map(d => `
+    <div class="fila">
+      <div class="titulo">${esc(d.nombre)} <span class="etiqueta">${esc(d.categoria)}</span></div>
+      <div class="aviso">${esc(d.descripcion)} · ${esc(d.fecha)} · ${(d.tamano/1024).toFixed(0)} KB</div>
+      <a href="${d.datos}" download="${esc(d.nombre)}"><button class="btn">Descargar</button></a>
+      <button class="btn peligro" data-accion="borrarD" data-id="${d.id}">Eliminar</button>
+    </div>`).join("");
+}
+
+/* ---------- Respaldo ---------- */
+function vistaRespaldo(){
+  return `
+  <div class="card resumen">
+    <div><b>${db.transformadores.length}</b>Transformadores</div>
+    <div><b>${db.materiales.length}</b>Materiales</div>
+    <div><b>${db.personal.length}</b>Personal</div>
+    <div><b>${db.documentos.length}</b>Documentos</div>
+  </div>
+  <div class="card">
+    <h3>Copia de seguridad</h3>
+    <p class="aviso">Los datos se guardan en este navegador. Exporta un respaldo JSON al menos una vez por semana y guárdalo en tu computador o Drive. Ese archivo también sirve para pasar la información del celular al computador.</p>
+    <button class="btn" data-accion="exportar">Exportar respaldo (.json)</button>
+  </div>
+  <div class="card">
+    <h3>Restaurar respaldo</h3>
+    <p class="aviso">Esto reemplaza los datos actuales por los del archivo.</p>
+    <input type="file" id="archivoImport" accept=".json,application/json">
+    <button class="btn" data-accion="importar">Importar</button>
+  </div>
+  <div class="card">
+    <button class="btn peligro" data-accion="borrarTodo">Borrar todos los datos de este navegador</button>
+  </div>`;
+}
+
+/* ---------- Render ---------- */
+function render(){
+  pintarMenu();
+  const fn = {transformadores:vistaTransformadores, materiales:vistaMateriales, personal:vistaPersonal, documentos:vistaDocumentos, respaldo:vistaRespaldo}[vista];
+  document.getElementById("contenido").innerHTML = fn();
+  if(vista==="transformadores") listaT();
+}
+function listaT(){ document.getElementById("listaT").innerHTML = listaTransformadores(document.getElementById("buscarT")?.value || ""); }
+
+/* ---------- Eventos ---------- */
+document.getElementById("menu").addEventListener("click", e => {
+  const b = e.target.closest("[data-vista]"); if(!b) return;
+  vista = b.dataset.vista; render();
+});
+
+const main = document.getElementById("contenido");
+
+main.addEventListener("input", e => { if(e.target.id==="buscarT") listaT(); });
+
+main.addEventListener("change", async e => {
+  if(e.target.dataset.accion==="cambiarEtapa"){
+    const t = db.transformadores.find(x=>x.id===e.target.dataset.id);
+    if(t){ t.etapa = e.target.value; t.historial = [...(t.historial||[]), {fecha:hoy(), etapa:e.target.value}]; guardar(); render(); }
+  }
+});
+
+main.addEventListener("submit", async e => {
+  e.preventDefault();
+  const f = e.target, accion = f.dataset.accion;
+  const d = Object.fromEntries(new FormData(f));
+
+  if(accion==="nuevoT"){
+    const fotos = [];
+    for(const file of f.fotos.files) fotos.push(await comprimirImagen(file));
+    db.transformadores.push({id:nuevoId(), placa:d.placa, cliente:d.cliente, telefono:d.telefono, kva:d.kva, voltaje:d.voltaje,
+      tipo:d.tipo, llegada:d.llegada, falla:d.falla, valor:Number(d.valor)||0, etapa:d.etapa, tecnico:d.tecnico,
+      fotos, historial:[{fecha:d.llegada, etapa:d.etapa}]});
+  }
+  if(accion==="nuevoM"){
+    const foto = f.foto.files[0] ? await comprimirImagen(f.foto.files[0]) : "";
+    db.materiales.push({id:nuevoId(), nombre:d.nombre, cantidad:Number(d.cantidad)||0, unidad:d.unidad, ubicacion:d.ubicacion, costo:Number(d.costo)||0, tipo:d.tipo, foto});
+  }
+  if(accion==="nuevoP"){
+    db.personal.push({id:nuevoId(), nombre:d.nombre, cargo:d.cargo, telefono:d.telefono, tipoPago:d.tipoPago, valor:Number(d.valor)||0, afiliacion:d.afiliacion, cajas:[]});
+  }
+  if(accion==="nuevoD"){
+    const file = f.archivo.files[0];
+    if(file.size > 3*1024*1024){ alert("El archivo supera 3 MB. Guárdalo en Drive o en el computador."); return; }
+    db.documentos.push({id:nuevoId(), nombre:file.name, tamano:file.size, categoria:d.categoria, descripcion:d.descripcion, fecha:hoy(), datos: await leerArchivo(file)});
+  }
+  guardar(); render();
+});
+
+main.addEventListener("click", e => {
+  const b = e.target.closest("[data-accion]"); if(!b || b.tagName==="SELECT" || b.tagName==="FORM") return;
+  const a = b.dataset.accion, id = b.dataset.id;
+
+  if(a==="borrarT" && confirm("¿Eliminar este transformador?")) db.transformadores = db.transformadores.filter(x=>x.id!==id);
+  if(a==="borrarM" && confirm("¿Eliminar este material?")) db.materiales = db.materiales.filter(x=>x.id!==id);
+  if(a==="borrarP" && confirm("¿Eliminar esta persona?")) db.personal = db.personal.filter(x=>x.id!==id);
+  if(a==="borrarD" && confirm("¿Eliminar este documento?")) db.documentos = db.documentos.filter(x=>x.id!==id);
+
+  if(a==="movM"){
+    const m = db.materiales.find(x=>x.id===id);
+    const cant = Number(prompt("¿Cuántas unidades (" + m.unidad + ")?"));
+    if(cant>0){ m.cantidad = Math.max(0, m.cantidad + cant*Number(b.dataset.signo)); }
+  }
+  if(a==="nuevaCaja"){
+    const p = db.personal.find(x=>x.id===id);
+    const monto = Number(prompt("Monto entregado:"));
+    if(monto>0){ const concepto = prompt("Para qué (material o gasto):") || ""; p.cajas = [...(p.cajas||[]), {id:nuevoId(), fecha:hoy(), monto, concepto, legalizada:false}]; }
+  }
+  if(a==="legalizar"){
+    const p = db.personal.find(x=>x.id===id);
+    const c = p.cajas.find(x=>x.id===b.dataset.caja); if(c) c.legalizada = true;
+  }
+
+  if(a==="exportar"){
+    const blob = new Blob([JSON.stringify(db, null, 2)], {type:"application/json"});
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "respaldo-transformadores-" + hoy() + ".json";
+    link.click();
+    return;
+  }
+  if(a==="importar"){
+    const file = document.getElementById("archivoImport").files[0];
+    if(!file){ alert("Selecciona un archivo .json"); return; }
+    const r = new FileReader();
+    r.onload = () => {
+      try {
+        const datos = JSON.parse(r.result);
+        if(!confirm("¿Reemplazar los datos actuales con este respaldo?")) return;
+        db = {...vacio(), ...datos}; guardar(); render(); alert("Respaldo restaurado.");
+      } catch(err){ alert("El archivo no es un respaldo válido."); }
+    };
+    r.readAsText(file); return;
+  }
+  if(a==="borrarTodo" && confirm("¿Borrar TODOS los datos de este navegador? Haz un respaldo antes.")){
+    db = vacio(); localStorage.removeItem(CLAVE);
+  }
+
+  guardar(); render();
+});
+
+render();
+</script>
+</body>
+  </html>
