@@ -12,10 +12,54 @@ iframe{width:1400px;height:900px;border:0;background:#fff}
 </head>
 <body>
 <pre id="out">iniciando...</pre>
-<iframe id="app" src="index.html"></iframe>
+<button id="restaurar" type="button">Restaurar datos originales</button>
+<iframe id="app"></iframe>
 <script>
 const res = [];
 function ping(paso){ try{ fetch("/__paso__?p=" + encodeURIComponent(paso), {cache:"no-store"}); }catch(e){} }
+
+/* La app guarda con la clave real en el mismo origen que esta pagina. Para no
+   pisar los datos del taller, el test respalda esos valores, deja la clave
+   vacia mientras corre y la restaura al terminar (o al cerrar la pagina). */
+const CLAVE_APP = "gestionTransformadores";
+const CLAVE_APILAR = "gestionApilar";
+const CLAVE_RESPALDO = "cw_respaldo_gestion";
+let respaldo = null;
+let respaldoApilar = null;
+let habiaDatos = false;
+
+function hayDatos(){
+  try{ return localStorage.getItem(CLAVE_APP) !== null; }catch(e){ return false; }
+}
+function respaldar(){
+  try{
+    respaldo = localStorage.getItem(CLAVE_APP);
+    respaldoApilar = localStorage.getItem(CLAVE_APILAR);
+    if(respaldo !== null) sessionStorage.setItem(CLAVE_RESPALDO, respaldo);
+    localStorage.removeItem(CLAVE_APP);
+    localStorage.removeItem(CLAVE_APILAR);
+    return true;
+  }catch(e){ return false; }
+}
+function restaurar(){
+  try{
+    const previo = (respaldo !== null) ? respaldo : sessionStorage.getItem(CLAVE_RESPALDO);
+    if(previo === null && respaldoApilar === null) return false;
+    if(previo !== null) localStorage.setItem(CLAVE_APP, previo);
+    else localStorage.removeItem(CLAVE_APP);
+    if(respaldoApilar !== null) localStorage.setItem(CLAVE_APILAR, respaldoApilar);
+    else localStorage.removeItem(CLAVE_APILAR);
+    sessionStorage.removeItem(CLAVE_RESPALDO);
+    respaldo = null; respaldoApilar = null;
+    return true;
+  }catch(e){ return false; }
+}
+document.getElementById("restaurar").addEventListener("click", () => {
+  const ok = restaurar();
+  document.getElementById("out").textContent = ok
+    ? "Datos originales restaurados. Recarga la pagina para volver a probar."
+    : "No habia datos que restaurar.";
+});
 function log(ok, msg){
   res.push({ok:ok, msg:msg});
   ping((ok?"PASS":"FAIL") + " " + msg);
@@ -32,6 +76,25 @@ function run(){
     w.alert = m => avisos.push(String(m));
     w.confirm = m => { avisos.push("CONFIRM: " + m); return true; };
     w.prompt = (m, def) => { avisos.push("PROMPT: " + m); return def || "prueba"; };
+
+    /* El test no depende de que existan datos reales: si no hay ninguna
+       tarjeta en Ingresados, se crea una para poder medir el flujo. */
+    const D = w.eval("db");
+    let ingresado = D.transformadores.find(t => t.etapa === "ingresados");
+    if(!ingresado){
+      ingresado = {
+        id:w.nuevoId(), placa:"TX-PRUEBA", cliente:"Cliente de prueba", kva:"75",
+        etapa:"ingresados", ruta:"mantenimiento", llegada:w.fechaLocal(),
+        valor:0, aprobacionCliente:null, requiereAprobacion:false, cambiosRuta:[], fotos:[],
+        diagnostico:{nota:"",tecnico:"",fecha:""}, cotizacion:{detalle:""},
+        horno:{ingresos:0,visitas:[]}, secado:{ciclos:[]}, finales:{}, entrega:null,
+        historial:[{fecha:w.fechaLocal(),hora:"08:00",de:"",a:"ingresados",nota:"Creado por la prueba"}]
+      };
+      D.transformadores.push(ingresado);
+      w.guardar(); w.render();
+      log(true, "No habia tarjeta en Ingresados: se creo " + ingresado.placa);
+    }
+    const id102 = ingresado.id;
 
     const cols = d.querySelectorAll(".col");
     log(cols.length === 9, "El tablero tiene 9 columnas (encontradas " + cols.length + ")");
@@ -52,8 +115,6 @@ function run(){
     const botonesMover = d.querySelectorAll('[data-accion="moverTarjeta"]');
     log(botonesMover.length === tarjetas.length, "Cada tarjeta tiene boton Mover (" + botonesMover.length + "/" + tarjetas.length + ")");
 
-    const D = w.eval("db");
-    const id102 = D.transformadores.find(t => t.etapa === "ingresados").id;
     ping("abrir modal mover");
     w.abrirModal("mover", id102);
     const ops = d.querySelectorAll(".mover-op");
@@ -117,9 +178,25 @@ function run(){
   }catch(e){
     log(false, "Excepcion: " + e.message);
   }
+  const restaurado = restaurar();
+  log(restaurado || !habiaDatos, "Datos originales del taller restaurados");
   ping("RESULTADO " + (res.every(r=>r.ok) ? "TODO_OK" : "HAY_FALLOS"));
 }
-window.addEventListener("load", () => setTimeout(run, 700));
+window.addEventListener("load", () => {
+  habiaDatos = hayDatos();
+  const aislado = respaldar();
+  document.getElementById("out").textContent = (habiaDatos
+      ? "Datos reales del taller respaldados y aislados."
+      : "No habia datos guardados: la app arranca con sus ejemplos.")
+    + (aislado ? "" : "\nATENCION: no se pudo aislar localStorage; el test puede escribir sobre tus datos.")
+    + "\ncargando la app...";
+  const f = document.getElementById("app");
+  f.addEventListener("load", () => setTimeout(run, 700), {once:true});
+  f.src = "index.html";
+});
+window.addEventListener("beforeunload", () => {
+  try{ if(respaldo !== null || sessionStorage.getItem(CLAVE_RESPALDO) !== null) restaurar(); }catch(e){}
+});
 </script>
 </body>
 </html>
