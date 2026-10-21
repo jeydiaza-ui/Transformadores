@@ -17,3 +17,28 @@ venv/
 *.log
 Thumbs.db
 desktop.ini
+
+# Depuracion de la sesion del 2026-10-21: capturas de pantalla, copias de la
+# version de 8 etapas y arneses viejos de prueba. Se listan uno por uno a
+# proposito: un patron "_*" tambien taparia _test_tablero.html, que SI se
+# versiona por ser el arnes de prueba vigente del tablero.
+_app_extract.js
+_board.png
+_board2.png
+_check.js
+_demo.html
+_demo.js
+_dump.html
+_ficha.png
+_ficha2.png
+_frame.html
+_horno.png
+_horno2.png
+_m1.png
+_m2.png
+_movil.png
+_probe.html
+_probe.js
+_shot.js
+_test.html
+_test.js
