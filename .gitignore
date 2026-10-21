@@ -1,0 +1,19 @@
+# Material fuente del taller: fotos, video, versiones de Claude/DeepSeek e informes.
+# Pesado (~141 MB) y no forma parte del codigo de la app.
+_MATERIAL_FUENTE/
+
+# Estado interno de herramientas
+.codewhale/
+
+# Dependencias y artefactos generados
+node_modules/
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Temporales y archivos de sistema
+*.tmp
+*.log
+Thumbs.db
+desktop.ini

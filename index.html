@@ -2,79 +2,487 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gestión Transformadores</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#1f3b5a">
+<title>CTC Energy · Taller de transformadores</title>
 <style>
 *{box-sizing:border-box}
-body{font-family:system-ui,sans-serif;margin:0;background:#f2f4f7;color:#222}
-header{background:#1f3b5a;color:#fff;padding:12px 16px}
-header h1{margin:0;font-size:18px}
-nav{display:flex;flex-wrap:wrap;background:#2d5278}
-nav button{flex:1 1 auto;padding:10px 6px;border:0;background:none;color:#fff;font-size:14px;cursor:pointer}
-nav button.activa{background:#1f3b5a;font-weight:bold}
-main{padding:12px;max-width:900px;margin:auto}
-.card{background:#fff;border-radius:8px;padding:12px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.1)}
-.card h3{margin:0 0 8px}
-label{display:block;font-size:13px;margin-top:8px;color:#444}
-input,select,textarea{width:100%;padding:8px;margin-top:3px;border:1px solid #bbb;border-radius:5px;font-size:15px;font-family:inherit}
-.btn{background:#1f3b5a;color:#fff;border:0;padding:9px 14px;border-radius:5px;margin:10px 6px 0 0;cursor:pointer;font-size:14px}
-.btn.peligro{background:#b03a2e}
+:root{
+  --bg:#eef1f5; --sup:#fff; --ink:#16202b; --mut:#5b6b7c; --line:#d7dee6;
+  --brand:#1f3b5a; --brand2:#2d5278; --accent:#0f766e;
+  --bad:#a8322a; --warn:#8a4a00; --ok:#146c37;
+  --r:10px; --sh:0 1px 2px rgba(16,24,40,.06),0 2px 8px rgba(16,24,40,.05);
+  --font:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+}
+html,body{margin:0}
+body{font-family:var(--font);background:var(--bg);color:var(--ink);-webkit-text-size-adjust:100%}
+body.modal-abierto{overflow:hidden}
+header{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;padding:14px 16px}
+header h1{margin:0;font-size:18px;font-weight:700;letter-spacing:.2px}
+header h1 span{display:block;font-size:12px;font-weight:400;opacity:.8;margin-top:2px}
+nav{display:flex;flex-wrap:wrap;background:#1a324c;position:sticky;top:0;z-index:20;box-shadow:0 2px 6px rgba(16,24,40,.15)}
+nav button{flex:1 1 auto;padding:11px 8px;border:0;background:none;color:#cfd9e4;font-size:13px;font-family:inherit;cursor:pointer;border-bottom:3px solid transparent}
+nav button.activa{background:#16293e;color:#fff;font-weight:600;border-bottom-color:#4cc9a2}
+main{padding:12px;max-width:980px;margin:auto}
+body.ancho main{max-width:1700px}
+
+/* ---------- Bloques ---------- */
+.card{background:var(--sup);border:1px solid var(--line);border-radius:var(--r);padding:12px;margin-bottom:12px;box-shadow:var(--sh)}
+.card h3{margin:0 0 8px;font-size:15px}
+label{display:block;font-size:12.5px;margin-top:8px;color:#3d4b59;font-weight:500}
+input,select,textarea{width:100%;padding:8px;margin-top:3px;border:1px solid #b9c4d0;border-radius:6px;font-size:15px;font-family:inherit;background:#fff;color:var(--ink)}
+input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid var(--brand2);outline-offset:1px}
+.btn{background:var(--brand);color:#fff;border:0;padding:9px 14px;border-radius:6px;margin:10px 6px 0 0;cursor:pointer;font-size:14px;font-family:inherit;font-weight:500}
+.btn:hover{background:var(--brand2)}
 .btn.suave{background:#6b7c8f}
-.fila{border-bottom:1px solid #eee;padding:10px 0}
+.btn.peligro{background:var(--bad)}
+.btn.ok{background:var(--ok)}
+.btn.sm{padding:6px 10px;font-size:12.5px;margin:0}
+.btn:disabled{background:#c3ccd6;color:#6c7885;cursor:not-allowed}
+.fila{border-bottom:1px solid #edf1f5;padding:10px 0}
 .fila:last-child{border-bottom:0}
-.fila .titulo{font-weight:bold}
-.etiqueta{display:inline-block;font-size:12px;background:#e3ecf5;padding:2px 8px;border-radius:10px;margin-right:4px}
-.alerta{background:#fdecea;color:#8a1c12}
-.fotos img{width:88px;height:88px;object-fit:cover;border-radius:5px;margin:4px 4px 0 0}
-.resumen{display:flex;gap:8px;flex-wrap:wrap}
-.resumen div{flex:1 1 130px;background:#e3ecf5;border-radius:6px;padding:8px;text-align:center}
-.resumen b{display:block;font-size:20px}
-.aviso{font-size:12px;color:#666;margin-top:6px}
+.fila .titulo{font-weight:600}
+.etiqueta{display:inline-block;font-size:11.5px;background:#e6eef7;color:#2b4a6b;padding:2px 8px;border-radius:10px;margin-right:4px}
+.alerta{background:#fdecea;color:#8a1c12;padding:2px 6px;border-radius:4px}
+.fotos img{width:88px;height:88px;object-fit:cover;border-radius:6px;margin:4px 4px 0 0;border:1px solid var(--line)}
+.aviso{font-size:12px;color:var(--mut);margin:6px 0 0;line-height:1.45}
+.resumen{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.resumen div{flex:1 1 130px;background:var(--sup);border:1px solid var(--line);border-radius:var(--r);padding:9px 10px;text-align:center;box-shadow:var(--sh)}
+.resumen b{display:block;font-size:21px;line-height:1.1;color:var(--brand)}
+.resumen span{font-size:11.5px;color:var(--mut);text-transform:uppercase;letter-spacing:.4px}
+.resumen div.ojo b{color:var(--bad)}
+
+/* ---------- Tablero ---------- */
+.barra-tablero{display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
+.barra-tablero input{flex:1 1 220px;margin:0}
+.barra-tablero .btn{margin:0;white-space:nowrap}
+.leyenda{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:8px 12px;margin-bottom:12px;font-size:12.5px;color:#33455a;box-shadow:var(--sh)}
+.leyenda summary{cursor:pointer;font-weight:600;color:var(--brand)}
+.leyenda ul{margin:8px 0 2px;padding-left:18px;line-height:1.55}
+.pista{display:none;margin:-2px 0 10px;font-size:12px;color:var(--mut)}
+.tablero{display:flex;gap:14px;overflow-x:auto;padding:2px 2px 18px;align-items:flex-start;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;scrollbar-width:thin;scrollbar-color:#c3cedb transparent}
+.tablero::-webkit-scrollbar{height:9px}
+.tablero::-webkit-scrollbar-track{background:transparent}
+.tablero::-webkit-scrollbar-thumb{background:#c3cedb;border-radius:8px}
+.col{flex:0 0 288px;scroll-snap-align:start;background:#fff;border-radius:14px;border:1px solid #e2e8f0;border-top:4px solid var(--c);box-shadow:0 1px 2px rgba(16,24,40,.04),0 10px 24px -22px rgba(16,24,40,.45);overflow:hidden}
+.col-cab{display:flex;justify-content:space-between;align-items:flex-start;gap:6px;padding:12px 13px 10px;border-bottom:1px solid #f1f5f9}
+.col-cab h2{margin:0;font-size:12.5px;line-height:1.25;color:#1c2c3d;text-transform:uppercase;letter-spacing:.45px;font-weight:700}
+.col-cab h2::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--c);margin-right:7px;vertical-align:1px}
+.col-cab p{margin:3px 0 0 15px;font-size:11px;color:var(--mut);line-height:1.3}
+.cuenta{background:#f1f5f9;border:1px solid #e2e8f0;color:#33465b;font-size:12px;font-weight:700;border-radius:20px;padding:1px 9px;min-width:26px;text-align:center;flex:0 0 auto;font-variant-numeric:tabular-nums}
+.col-cuerpo{display:flex;flex-direction:column;gap:9px;padding:10px;min-height:58px}
+.vacio-col{margin:0;font-size:11.5px;color:#94a3b8;text-align:center;padding:14px 0;border:1px dashed #dbe3ec;border-radius:9px;background:#fbfcfe}
+.tarjeta{background:#fff;border:1px solid #e5eaf1;border-left:3px solid var(--c);border-radius:11px;padding:11px 12px;box-shadow:0 1px 2px rgba(16,24,40,.05);cursor:pointer;transition:transform .12s ease,box-shadow .12s ease,border-color .12s ease}
+.tarjeta:hover{transform:translateY(-1px);border-color:#cbd5e1;box-shadow:0 8px 18px -12px rgba(16,24,40,.35)}
+.t-cab{display:flex;justify-content:space-between;align-items:center;gap:6px}
+.t-placa{font-weight:700;font-size:13.5px;letter-spacing:.2px}
+.t-cli{font-size:12.5px;margin-top:3px;color:#2b3a4a}
+.t-meta{font-size:11.5px;color:var(--mut);margin-top:2px}
+.t-fecha{font-size:11.5px;color:var(--mut);margin-top:3px}
+.t-fecha b{color:#33465b;font-weight:600;font-variant-numeric:tabular-nums}
+.t-chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:7px}
+.chip{display:inline-block;font-size:10.5px;padding:2px 7px;border-radius:9px;background:#eef2f6;color:#4a5b6c;border:1px solid #dde4eb;white-space:nowrap}
+.chip.ok{background:#e2f4e8;color:var(--ok);border-color:#bfe4cc}
+.chip.mal{background:#fbe5e2;color:var(--bad);border-color:#f0c4bd}
+.chip.warn{background:#fdf0dc;color:var(--warn);border-color:#f0d6a8}
+.chip.horno{background:#fef9c3;color:#854d0e;border-color:#fde68a}
+.chip.ejemplo{background:#f1f5f9;color:#475569;border-color:#cbd5e1;font-weight:600;letter-spacing:.2px}
+.chip.ruta{font-weight:600}
+.chip.ruta.mantenimiento{background:#e3ecfa;color:#1e3f8f;border-color:#c3d4f2}
+.chip.ruta.reparacion{background:#f1e6fb;color:#5b21b6;border-color:#ddc7f5}
+.chip.ruta.sin{background:#fbe5e2;color:var(--bad);border-color:#f0c4bd}
+.t-bloqueo{margin:7px 0 0;font-size:11px;color:var(--bad);line-height:1.35}
+.t-acc{display:flex;gap:5px;margin-top:9px;flex-wrap:wrap}
+.mini{border:1px solid #c9d4df;background:#f7f9fb;color:#26374a;border-radius:6px;padding:6px 9px;font-size:11.5px;font-family:inherit;cursor:pointer;font-weight:500}
+.mini:hover{background:#eaf0f6}
+.mini.prim{background:var(--c);border-color:var(--c);color:var(--tinta,#fff);margin-left:auto;font-weight:600}
+.mini.prim:hover{filter:brightness(1.1)}
+.mini:disabled{background:#dde3ea;border-color:#d0d8e1;color:#8494a4;cursor:not-allowed;filter:none}
+.mini.icono{padding:6px 8px;font-size:13px;line-height:1}
+
+/* Arrastrar y soltar tarjetas entre columnas */
+.tarjeta[draggable="true"]{cursor:grab}
+.tarjeta.arrastrando{opacity:.4;cursor:grabbing;transform:none;box-shadow:none}
+.col.soltar-a{border-color:#93c5fd;background:#f5f9ff;box-shadow:inset 0 0 0 2px #bfdbfe}
+.col.soltar-a .col-cuerpo{background:transparent}
+.col.soltar-a .vacio-col{border-color:#93c5fd;background:#eef5ff;color:#3b6ea5}
+
+/* Selector "Mover a" */
+.mover-lista{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.mover-op{display:grid;grid-template-columns:auto 1fr auto;grid-template-areas:"punto nom chip" "punto sub chip";gap:0 9px;align-items:center;text-align:left;background:#fff;border:1px solid var(--line);border-radius:9px;padding:9px 11px;font-family:inherit;cursor:pointer;width:100%}
+.mover-op:hover{background:#f5f9fd;border-color:#c3d0de}
+.mover-op.act{background:#f1f5f9;border-style:dashed;cursor:default}
+.mover-punto{grid-area:punto;width:11px;height:11px;border-radius:50%;align-self:center}
+.mover-nom{grid-area:nom;font-size:13.5px;font-weight:600;color:var(--ink)}
+.mover-sub{grid-area:sub;font-size:11.5px;color:var(--mut)}
+.mover-op .chip{grid-area:chip}
+
+/* Vista apilada (celular / pantallas angostas) */
+body.apilar .tablero{flex-direction:column;gap:12px;overflow:visible;scroll-snap-type:none}
+body.apilar .col{flex:0 0 auto;width:100%;max-width:none;scroll-snap-align:none}
+body.apilar .pista{display:none}
+
+/* ---------- Modal ---------- */
+.modal{position:fixed;inset:0;background:rgba(14,22,32,.55);display:none;align-items:center;justify-content:center;z-index:100;padding:16px}
+.modal.abierto{display:flex}
+.modal-caja{background:var(--sup);border-radius:12px;width:100%;max-width:720px;max-height:92vh;display:flex;flex-direction:column;box-shadow:0 20px 50px rgba(0,0,0,.35);overflow:hidden}
+.modal-cab{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line);background:#f7f9fb}
+.modal-cab h2{margin:0;font-size:15px;line-height:1.25;overflow-wrap:anywhere}
+.modal-x{border:0;background:#e4eaf1;color:#33465b;width:32px;height:32px;border-radius:50%;font-size:20px;line-height:1;cursor:pointer;flex:0 0 auto}
+.modal-cuerpo{padding:14px 16px 22px;overflow-y:auto}
+.sec{border-top:1px solid var(--line);margin-top:16px;padding-top:12px}
+.sec:first-child{border-top:0;margin-top:0;padding-top:0}
+.sec h3{margin:0 0 4px;font-size:13.5px;color:var(--brand);text-transform:uppercase;letter-spacing:.5px}
+.sec h4{margin:10px 0 4px;font-size:13px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
+.btn-fila{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.btn-fila .btn{margin:0}
+.chip-fila{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.tabla-temp{width:100%;border-collapse:collapse;margin-top:8px;font-size:12px}
+.tabla-temp th,.tabla-temp td{text-align:left;padding:5px 6px;border-bottom:1px solid #edf1f5}
+.tabla-temp th{color:var(--mut);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.3px}
+.visita{border:1px solid var(--line);border-radius:8px;padding:9px 10px;margin-top:8px;background:#fbfcfd}
+.visita-cab{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:13px}
+.prueba{border:1px solid var(--line);border-radius:8px;padding:9px 10px;margin-top:8px;background:#fbfcfd}
+.prueba.na .campos{opacity:.35;pointer-events:none}
+.prueba-cab{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:13px;font-weight:600}
+.linea{display:flex;gap:6px;align-items:center;margin-top:8px;font-size:12.5px;color:#33465b}
+.linea input[type=checkbox]{width:auto;margin:0}
+.en-linea{display:flex;gap:6px;align-items:flex-end;margin-top:8px;flex-wrap:wrap}
+.en-linea input{flex:1 1 110px;margin:0}
+.timeline{list-style:none;margin:8px 0 0;padding:0}
+.timeline li{position:relative;padding:0 0 12px 18px;border-left:2px solid #dde4eb;margin-left:4px}
+.timeline li:last-child{border-left-color:transparent;padding-bottom:0}
+.timeline li::before{content:"";position:absolute;left:-5px;top:3px;width:8px;height:8px;border-radius:50%;background:var(--brand2)}
+.timeline b{font-size:12.5px}
+.timeline span{display:block;font-size:11.5px;color:var(--mut)}
+details.archivo{margin-top:14px}
+.archivo-lista{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.archivo-item{display:flex;justify-content:space-between;align-items:center;gap:8px;background:#f7f9fb;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:12.5px}
+
+@media (max-width:700px){
+  main{padding:10px}
+  nav{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+  nav::-webkit-scrollbar{display:none}
+  nav button{flex:0 0 auto;padding:11px 13px;font-size:12.5px;white-space:nowrap}
+  .col{flex:0 0 86vw;max-width:340px}
+  .tablero{gap:11px;margin:0 -10px;padding:2px 10px 16px;scroll-snap-type:x mandatory}
+  .t-acc .mini{flex:1 1 auto;justify-content:center}
+  .t-acc .mini.prim{margin-left:0}
+  body.apilar .tablero{margin:0;padding:2px 0 16px}
+  .pista{display:block}
+  .modal{padding:0}
+  .modal-caja{max-width:none;height:100%;max-height:none;border-radius:0}
+  .modal-cab{padding:10px 12px}
+  .modal-cuerpo{padding:12px 12px 28px}
+  .grid2{grid-template-columns:1fr}
+  header h1{font-size:16px}
+}
+@media (max-height:560px) and (orientation:landscape){
+  header{padding:8px 12px}
+  header h1{font-size:15px}
+  header h1 span{font-size:11px}
+  main{padding:8px}
+  .resumen{margin-bottom:8px}
+  .resumen div{padding:6px 8px}
+  .resumen b{font-size:17px}
+}
+@media print{
+  nav,.barra-tablero,.leyenda,.pista,.t-acc,.modal{display:none!important}
+  .tablero{display:block}
+  .col{width:100%;border:0;background:none;margin-bottom:10px}
+}
 </style>
 </head>
 <body>
-<header><h1>Gestión de Transformadores</h1></header>
-<nav id="menu"></nav>
+<header><h1>CTC Energy<span>Taller de transformadores · mantenimiento y reparación</span></h1></header>
+<nav id="menu" aria-label="Secciones"></nav>
 <main id="contenido"></main>
 
-<script>
-const ETAPAS = ["Recibido","Diagnóstico","Cotizado","Aprobado","En reparación","Pruebas","Listo para entrega","Entregado"];
-const CATEGORIAS = ["Contable","SIIGO","Operativo","SST","Personal","Otro"];
-const VISTAS = {transformadores:"Transformadores", materiales:"Materiales", personal:"Personal", documentos:"Documentos", respaldo:"Respaldo"};
-const CLAVE = "gestionTransformadores";
-let vista = "transformadores";
-let db = cargar();
+<div class="modal" id="modal" aria-hidden="true">
+  <div class="modal-caja" role="dialog" aria-modal="true" aria-labelledby="modal-titulo">
+    <div class="modal-cab">
+      <h2 id="modal-titulo"></h2>
+      <button type="button" class="modal-x" id="modal-x" aria-label="Cerrar">&times;</button>
+    </div>
+    <div class="modal-cuerpo" id="modal-cuerpo"></div>
+  </div>
+</div>
 
-/* ---------- Almacenamiento ---------- */
-function vacio(){ return {transformadores:[], materiales:[], personal:[], documentos:[]}; }
+<script>
+/* ==========================================================================
+   CTC Energy · Taller de transformadores
+   Tablero Kanban con reglas de negocio del flujo de mantenimiento/reparación.
+   Todo vive en un solo archivo. Los datos se guardan en localStorage.
+   ========================================================================== */
+
+/* ---------- 1. Flujo ----------
+   9 columnas. La ruta elegida en Pruebas Iniciales define si el equipo
+   entra a Mantenimiento o a Reparación; ambas convergen en el Horno.
+   No se puede saltar: el manejador solo permite avanzar/retroceder a la
+   etapa contigua y cada paso tiene su compuerta. */
+const ETAPAS = [
+  {id:"ingresados",        nom:"Ingresados",            sub:"Ingreso y registro",              color:"#64748b"},
+  {id:"pruebas_iniciales", nom:"Pruebas Iniciales",     sub:"Evaluación y diagnóstico",        color:"#2563eb"},
+  {id:"espera_cliente",    nom:"En Espera de Cliente",  sub:"Cotización y aprobación",         color:"#b45309"},
+  {id:"mantenimiento",     nom:"Mantenimiento",         sub:"Ajustes sin rebobinado",          color:"#0d9488"},
+  {id:"reparacion",        nom:"Reparación",            sub:"Desarme / Bobinado",              color:"#7c3aed"},
+  {id:"horno",             nom:"En Horno",              sub:"Secado · 2–3 días",               color:"#eab308", tinta:"#422006"},
+  {id:"armado",            nom:"Armado",                sub:"Ensamble del equipo",             color:"#db2777"},
+  {id:"pruebas_finales",   nom:"Pruebas Finales",       sub:"Vacío · Cortocircuito · Aislamiento", color:"#4f46e5"},
+  {id:"terminados",        nom:"Terminados",            sub:"Listo para entrega",              color:"#16a34a"}
+];
+const ENTREGADO = {id:"entregado", nom:"Entregado", sub:"Trabajo cerrado", color:"#475569"};
+const ORDEN = ETAPAS.map(e => e.id);
+const ETAPA = Object.fromEntries([...ETAPAS, ENTREGADO].map(e => [e.id, e]));
+const RUTAS = {mantenimiento:"Mantenimiento", reparacion:"Reparación"};
+const UMBRAL_DEF = 100;           // MΩ mínimos para aprobar el aislamiento
+const CLAVE = "gestionTransformadores";
+const VERSION_DATOS = 2;
+
+const PRUEBAS_SECADO = [
+  {k:"atbt", nom:"AT-BT", desc:"Alta tensión contra baja tensión"},
+  {k:"att",  nom:"AT-T",  desc:"Alta tensión contra tierra"},
+  {k:"btt",  nom:"BT-T",  desc:"Baja tensión contra tierra"}
+];
+const PRUEBAS_FINALES = [
+  {k:"vacio",       nom:"Vacío",                            obligatoria:true,  campos:[{k:"v",l:"Tensión aplicada (V)"},{k:"i",l:"Corriente (A)"},{k:"p",l:"Pérdidas (W)"}]},
+  {k:"corto",       nom:"Cortocircuito",                    obligatoria:true,  campos:[{k:"v",l:"Tensión de impedancia (V)"},{k:"i",l:"Corriente (A)"},{k:"p",l:"Pérdidas (W)"}]},
+  {k:"aislamiento", nom:"Aislamiento",                      obligatoria:false, campos:[{k:"mohm",l:"Resistencia (MΩ)"},{k:"dar",l:"DAR"},{k:"pi",l:"PI"}]},
+  {k:"ttr",         nom:"Relación de transformación (TTR)", obligatoria:false, campos:[{k:"medido",l:"Relación medida"},{k:"placa",l:"Relación de placa"},{k:"err",l:"Error (%)"}]},
+  {k:"indice",      nom:"Índice horario",                   obligatoria:false, campos:[{k:"grupo",l:"Grupo de conexión"}]},
+  {k:"devanados",   nom:"Resistencia de devanados",         obligatoria:false, campos:[{k:"mohm",l:"Resistencia (mΩ)"},{k:"desb",l:"Desbalance (%)"}]}
+];
+const CATEGORIAS = ["Contable","SIIGO","Operativo","SST","Personal","Otro"];
+const VISTAS = {tablero:"Tablero", equipos:"Equipos", materiales:"Materiales", personal:"Personal", documentos:"Documentos", respaldo:"Respaldo"};
+
+/* ---------- 2. Estado ---------- */
+let vista = "tablero";
+const PRIMERA_VEZ = (() => { try { return !localStorage.getItem(CLAVE); } catch(e){ return false; } })();
+let db = cargar();
+let filtroTablero = "";
+let verEntregados = false;
+let apilarColumnas = (() => { try { return localStorage.getItem("gestionApilar") === "1"; } catch(e){ return false; } })();
+let modalActual = null;
+let focoPrevio = null;
+
+migrar();
+if(PRIMERA_VEZ) sembrarEjemplos();
+
+/* ---------- 3. Almacenamiento ---------- */
+function vacio(){ return {version:VERSION_DATOS, transformadores:[], materiales:[], personal:[], documentos:[], config:{umbralSecado:UMBRAL_DEF, ejemplosSembrados:false}}; }
 function cargar(){
-  try { const d = localStorage.getItem(CLAVE); return d ? {...vacio(), ...JSON.parse(d)} : vacio(); }
-  catch(e){ return vacio(); }
+  try{
+    const raw = localStorage.getItem(CLAVE);
+    if(!raw) return vacio();
+    const d = JSON.parse(raw);
+    return Object.assign(vacio(), d, {config:Object.assign({umbralSecado:UMBRAL_DEF, ejemplosSembrados:false}, d.config||{})});
+  }catch(e){ return vacio(); }
 }
 function guardar(){
-  try { localStorage.setItem(CLAVE, JSON.stringify(db)); }
-  catch(e){ alert("El almacenamiento del navegador está lleno. Exporta un respaldo JSON y elimina fotos o documentos viejos."); }
+  try{ localStorage.setItem(CLAVE, JSON.stringify(db)); return true; }
+  catch(e){
+    alert("No se pudo guardar: el almacenamiento de este navegador está lleno.\n\n" +
+      "Casi siempre son las fotos. Exporta un respaldo desde Respaldo, elimina fotos de equipos ya entregados y vuelve a intentar.");
+    return false;
+  }
+}
+function usoKB(){ try{ return Math.round((JSON.stringify(db).length)/1024); }catch(e){ return 0; } }
+
+/* Convierte registros de versiones anteriores (8 etapas o nombres viejos). */
+const MAPA_VIEJO = {
+  "Recibido":"ingresados", "recibido":"ingresados",
+  "Diagnóstico":"pruebas_iniciales", "diagnostico":"pruebas_iniciales",
+  "Cotizado":"espera_cliente", "cotizado":"espera_cliente",
+  "Aprobado":"trabajo", "reparacion":"trabajo", "En reparación":"trabajo", "En Reparación":"trabajo",
+  "Pruebas":"pruebas_finales", "secado":"armado",
+  "Armado y Pruebas":"pruebas_finales", "armado":"pruebas_finales",
+  "Listo para entrega":"terminados", "listo":"terminados",
+  "Entregado":"entregado", "entregado":"entregado"
+};
+function mapearEtapaVieja(id, ruta){
+  const m = MAPA_VIEJO[id];
+  if(!m) return id;
+  return m === "trabajo" ? (ruta === "mantenimiento" ? "mantenimiento" : "reparacion") : m;
+}
+function migrar(){
+  const esViejo = !db.version || db.version < VERSION_DATOS;
+  (db.transformadores||[]).forEach(t => {
+    if(esViejo){
+      const vieja = t.etapa;
+      t.etapa = mapearEtapaVieja(vieja, t.ruta);
+      if(vieja === "Aprobado" && !t.aprobacionCliente){
+        t.aprobacionCliente = {estado:"aprobado", fecha:t.llegada||fechaLocal(), hora:"", medio:"Registro anterior", quien:"", obs:"Migrado desde la versión anterior."};
+      }
+      if(vieja === "Pruebas"){
+        t.finales = t.finales || {};
+      }
+      if(Array.isArray(t.historial)){
+        t.historial.forEach(h => {
+          if(h.de) h.de = mapearEtapaVieja(h.de, t.ruta);
+          if(h.a) h.a = mapearEtapaVieja(h.a, t.ruta);
+        });
+      }
+    }
+    if(t.ruta === undefined) t.ruta = "";
+    if(!t.horno) t.horno = {ingresos:0, visitas:[]};
+    if(!Array.isArray(t.horno.visitas)) t.horno.visitas = [];
+    if(!t.secado) t.secado = {ciclos:[]};
+    if(!Array.isArray(t.secado.ciclos)) t.secado.ciclos = [];
+    if(!t.finales) t.finales = {};
+    if(!Array.isArray(t.cambiosRuta)) t.cambiosRuta = [];
+    if(!Array.isArray(t.fotos)) t.fotos = [];
+    if(!Array.isArray(t.historial) || !t.historial.length){
+      t.historial = [{fecha:t.llegada||fechaLocal(), hora:"", de:"", a:t.etapa, nota:"Registro migrado"}];
+    }
+    if(t.valor === undefined) t.valor = 0;
+    if(t.requiereAprobacion === undefined) t.requiereAprobacion = (t.cambiosRuta.length > 0);
+  });
+  db.version = VERSION_DATOS;
 }
 
-/* ---------- Utilidades ---------- */
-function nuevoId(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+/* Tres tarjetas de ejemplo en el primer arranque, para mostrar el tablero. */
+function sembrarEjemplos(){
+  if(!db || db.transformadores.length || (db.config && db.config.ejemplosSembrados)) return;
+  const hace = n => { const d = new Date(); d.setDate(d.getDate()-n); return fechaLocal(d); };
+  const base = () => ({
+    telefono:"", voltaje:"13200/220", tipo:"Aceite", tecnico:"J. Díaz",
+    valor:0, fotos:[], diagnostico:{nota:"",tecnico:"",fecha:""},
+    cotizacion:{detalle:""}, aprobacionCliente:null, requiereAprobacion:false,
+    cambiosRuta:[], horno:{ingresos:0,visitas:[]}, secado:{ciclos:[]},
+    finales:{}, entrega:null, ejemplo:true
+  });
+  db.transformadores.push(
+    Object.assign(base(), {
+      id:nuevoId(), placa:"Transformador #102", cliente:"Cliente ABC", kva:"75",
+      etapa:"ingresados", ruta:"mantenimiento", llegada:hace(1),
+      falla:"Presenta calentamiento y ruido durante el servicio.",
+      historial:[{fecha:hace(1), hora:"08:20", de:"", a:"ingresados", nota:"Ingreso del equipo"}]
+    }),
+    Object.assign(base(), {
+      id:nuevoId(), placa:"Transformador #215", cliente:"Hotel Costa Azul", kva:"112.5",
+      etapa:"horno", ruta:"reparacion", llegada:hace(9),
+      falla:"Aislamiento bajo; requiere secado y rebobinado de BT.", valor:4800000,
+      aprobacionCliente:{estado:"aprobado", fecha:hace(5), hora:"10:10", quien:"Ing. Pérez", medio:"Orden de compra", obs:""},
+      horno:{ingresos:1, visitas:[{n:1, entrada:{fecha:hace(2),hora:"07:40",temp:96,nota:"horno 1"}, salida:null, lecturas:[{fecha:hace(1),hora:"09:00",temp:99,nota:"turno mañana"}]}]},
+      historial:[
+        {fecha:hace(9),hora:"08:00",de:"",a:"ingresados",nota:"Ingreso del equipo"},
+        {fecha:hace(7),hora:"11:00",de:"ingresados",a:"pruebas_iniciales",nota:""},
+        {fecha:hace(6),hora:"16:20",de:"pruebas_iniciales",a:"espera_cliente",nota:""},
+        {fecha:hace(5),hora:"10:30",de:"espera_cliente",a:"reparacion",nota:"Cliente aprobó"},
+        {fecha:hace(2),hora:"07:40",de:"reparacion",a:"horno",nota:"Ingreso al horno #1 · 96 °C"}
+      ]
+    }),
+    Object.assign(base(), {
+      id:nuevoId(), placa:"Transformador #087", cliente:"Industrias del Norte", kva:"250",
+      etapa:"terminados", ruta:"reparacion", llegada:hace(21),
+      falla:"Cambio de bobina de BT y pruebas finales.", valor:12800000,
+      aprobacionCliente:{estado:"aprobado", fecha:hace(16), hora:"09:30", quien:"Ing. Mora", medio:"Correo", obs:""},
+      horno:{ingresos:1, visitas:[{n:1, entrada:{fecha:hace(12),hora:"08:00",temp:92,nota:""}, salida:{fecha:hace(10),hora:"17:00",temp:70,nota:""}, lecturas:[]}]},
+      secado:{ciclos:[{n:1,fecha:hace(10),hora:"18:00",pruebas:{atbt:{v:1200,foto:""},att:{v:2600,foto:""},btt:{v:2400,foto:""}},minimo:1200,umbral:100,obs:"",resultado:"aprobado"}]},
+      finales:{
+        vacio:{estado:"registrada",campos:{v:"400",i:"18",p:"2100"},fecha:hace(2)},
+        corto:{estado:"registrada",campos:{v:"180",i:"18",p:"3400"},fecha:hace(2)},
+        aislamiento:{estado:"registrada",campos:{mohm:"1200",dar:"1.4",pi:"2.1"},fecha:hace(2)},
+        ttr:{estado:"registrada",campos:{medido:"60.2",placa:"60",err:"0.3"},fecha:hace(2)},
+        indice:{estado:"na",naMotivo:"Equipo monofásico",campos:{},fecha:hace(2)},
+        devanados:{estado:"registrada",campos:{mohm:"12.4",desb:"0.8"},fecha:hace(2)}
+      },
+      historial:[
+        {fecha:hace(21),hora:"08:00",de:"",a:"ingresados",nota:"Ingreso del equipo"},
+        {fecha:hace(19),hora:"10:00",de:"ingresados",a:"pruebas_iniciales",nota:""},
+        {fecha:hace(17),hora:"15:00",de:"pruebas_iniciales",a:"espera_cliente",nota:""},
+        {fecha:hace(16),hora:"10:00",de:"espera_cliente",a:"reparacion",nota:"Cliente aprobó"},
+        {fecha:hace(12),hora:"08:00",de:"reparacion",a:"horno",nota:"Ingreso al horno #1 · 92 °C"},
+        {fecha:hace(10),hora:"17:30",de:"horno",a:"armado",nota:"Salida del horno · 70 °C"},
+        {fecha:hace(4),hora:"09:00",de:"armado",a:"pruebas_finales",nota:""},
+        {fecha:hace(2),hora:"16:00",de:"pruebas_finales",a:"terminados",nota:"Pruebas finales completas"}
+      ]
+    })
+  );
+  db.config.ejemplosSembrados = true;
+  guardar();
+}
+
+/* ---------- 4. Utilidades ---------- */
+const $ = id => document.getElementById(id);
 function esc(t){ return String(t ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function p2(n){ return String(n).padStart(2,"0"); }
+function fechaLocal(d){ d = d || new Date(); return d.getFullYear()+"-"+p2(d.getMonth()+1)+"-"+p2(d.getDate()); }
+function fechaCorta(f){
+  const p = String(f || "").split("-");
+  return p.length === 3 ? p[2] + "/" + p[1] + "/" + p[0] : (f || "—");
+}
+function horaLocal(d){ d = d || new Date(); return p2(d.getHours())+":"+p2(d.getMinutes()); }
+function hoy(){ return fechaLocal(); }
+function numOrNull(v){
+  const s = String(v ?? "").trim().replace(",", ".");
+  if(s === "") return null;
+  const x = Number(s);
+  return isFinite(x) ? x : null;
+}
+function numTxt(x){ return (x === null || x === undefined || x === "") ? "—" : String(x).replace(".", ","); }
 function dinero(n){ return "$" + Number(n || 0).toLocaleString("es-CO"); }
-function hoy(){ return new Date().toISOString().slice(0,10); }
+function nuevoId(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function tGet(id){ return db.transformadores.find(x => x.id === id); }
+function idx(etapa){ return ORDEN.indexOf(etapa); }
+/* El flujo se bifurca: después de la aprobación del cliente el equipo entra
+   a Mantenimiento o a Reparación según la ruta elegida. */
+function siguiente(t){
+  switch(t.etapa){
+    case "ingresados":        return "pruebas_iniciales";
+    case "pruebas_iniciales": return "espera_cliente";
+    case "espera_cliente":    return t.ruta === "mantenimiento" ? "mantenimiento" : "reparacion";
+    case "mantenimiento":     return "horno";
+    case "reparacion":        return "horno";
+    case "horno":             return "armado";
+    case "armado":            return "pruebas_finales";
+    case "pruebas_finales":   return "terminados";
+    case "terminados":        return "entregado";
+    default:                  return null;
+  }
+}
+function anterior(t){
+  switch(t.etapa){
+    case "pruebas_iniciales": return "ingresados";
+    case "espera_cliente":    return "pruebas_iniciales";
+    case "mantenimiento":     return "espera_cliente";
+    case "reparacion":        return "espera_cliente";
+    case "horno":             return t.ruta === "mantenimiento" ? "mantenimiento" : "reparacion";
+    case "armado":            return "horno";
+    case "pruebas_finales":   return "armado";
+    case "terminados":        return "pruebas_finales";
+    default:                  return null;
+  }
+}
+function diasDesde(f){
+  if(!f) return 0;
+  const d = new Date(f + "T00:00:00");
+  if(isNaN(d)) return 0;
+  const h = new Date(fechaLocal() + "T00:00:00");
+  return Math.max(0, Math.round((h - d) / 86400000));
+}
+function desdeEtapa(t){
+  const h = (t.historial||[]).filter(x => x.a === t.etapa);
+  return h.length ? h[h.length-1].fecha : (t.llegada || fechaLocal());
+}
+function umbral(){ return Number((db.config && db.config.umbralSecado) || UMBRAL_DEF); }
 function leerArchivo(file){
   return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(file); });
 }
-function comprimirImagen(file){
+function comprimirImagen(file, max, calidad){
+  max = max || 1024; calidad = calidad || 0.7;
   return new Promise((res, rej) => {
     const r = new FileReader();
     r.onload = () => {
       const img = new Image();
       img.onload = () => {
-        const f = Math.min(1, 1024 / Math.max(img.width, img.height));
+        const f = Math.min(1, max / Math.max(img.width, img.height));
         const c = document.createElement("canvas");
-        c.width = img.width * f; c.height = img.height * f;
+        c.width = Math.max(1, Math.round(img.width * f));
+        c.height = Math.max(1, Math.round(img.height * f));
         c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
-        res(c.toDataURL("image/jpeg", 0.7));
+        res(c.toDataURL("image/jpeg", calidad));
       };
       img.onerror = rej; img.src = r.result;
     };
@@ -82,72 +490,478 @@ function comprimirImagen(file){
   });
 }
 
-/* ---------- Menú ---------- */
-function pintarMenu(){
-  document.getElementById("menu").innerHTML = Object.entries(VISTAS).map(([k,v]) =>
-    `<button class="${k===vista?'activa':''}" data-vista="${k}">${v}</button>`).join("");
+/* ---------- 5. Reglas del flujo ---------- */
+function visitaAbierta(t){
+  const v = (t.horno && t.horno.visitas) || [];
+  for(let i = v.length-1; i >= 0; i--) if(!v[i].salida) return v[i];
+  return null;
+}
+function ultimoCiclo(t){
+  const c = (t.secado && t.secado.ciclos) || [];
+  return c.length ? c[c.length-1] : null;
+}
+function estadoPrueba(t, k){
+  const p = (t.finales || {})[k];
+  if(!p) return "pendiente";
+  if(p.estado === "na") return "na";
+  const spec = PRUEBAS_FINALES.find(x => x.k === k);
+  const lleno = spec.campos.some(c => String((p.campos||{})[c.k] ?? "").trim() !== "");
+  return lleno ? "registrada" : "pendiente";
+}
+function faltantesFinales(t){
+  const falta = [];
+  PRUEBAS_FINALES.forEach(p => {
+    const e = estadoPrueba(t, p.k);
+    if(p.obligatoria && e !== "registrada") falta.push(p.nom);
+    if(!p.obligatoria && e === "pendiente") falta.push(p.nom + " (o N/A)");
+  });
+  return falta;
+}
+/* Devuelve {ok, motivo}. Esta es la única fuente de verdad sobre si se puede avanzar. */
+function puedeAvanzar(t){
+  const sig = siguiente(t);
+  if(!sig) return {ok:false, motivo:"El equipo ya está entregado."};
+  switch(t.etapa){
+    case "pruebas_iniciales":
+      if(!t.ruta) return {ok:false, motivo:"Define la ruta: Mantenimiento o Reparación."};
+      if(!(t.diagnostico && String(t.diagnostico.nota||"").trim())) return {ok:false, motivo:"Registra las pruebas iniciales antes de cotizar."};
+      return {ok:true};
+    case "espera_cliente":
+      if(t.aprobacionCliente && t.aprobacionCliente.estado === "rechazado") return {ok:false, motivo:"El cliente rechazó la cotización."};
+      if(!(Number(t.valor) > 0)) return {ok:false, motivo:"Falta el valor cotizado."};
+      if(!(t.aprobacionCliente && t.aprobacionCliente.estado === "aprobado")) return {ok:false, motivo:"Bloqueado hasta la aprobación del cliente."};
+      if(!t.ruta) return {ok:false, motivo:"Define la ruta: Mantenimiento o Reparación."};
+      return {ok:true};
+    case "mantenimiento":
+    case "reparacion":
+      return {ok:true};
+    case "horno": {
+      const v = visitaAbierta(t);
+      if(!v) return {ok:false, motivo:"Registra el ingreso al horno con su temperatura."};
+      if(v.entrada.temp === null || v.entrada.temp === undefined) return {ok:false, motivo:"Falta la temperatura de ingreso."};
+      return {ok:true};
+    }
+    case "armado":
+      return {ok:true};
+    case "pruebas_finales": {
+      const c = ultimoCiclo(t);
+      if(!c) return {ok:false, motivo:"Registra el aislamiento (AT-BT, AT-T, BT-T) con foto."};
+      if(c.resultado !== "aprobado") return {ok:false, motivo:"El aislamiento está por debajo del mínimo: debe volver al horno."};
+      const f = faltantesFinales(t);
+      if(f.length) return {ok:false, motivo:"Faltan pruebas finales: " + f.join(", ") + "."};
+      return {ok:true};
+    }
+  }
+  return {ok:true};
+}
+/* Mueve y deja rastro. No valida: siempre llamar después de puedeAvanzar(). */
+function moverA(t, destino, nota){
+  const de = t.etapa;
+  t.etapa = destino;
+  t.historial = t.historial || [];
+  t.historial.push({fecha:fechaLocal(), hora:horaLocal(), de:de, a:destino, nota:nota || ""});
 }
 
-/* ---------- Transformadores ---------- */
-function vistaTransformadores(){
-  const t = db.transformadores;
-  const listos = t.filter(x => x.etapa === "Listo para entrega").length;
-  const enCurso = t.filter(x => x.etapa !== "Entregado").length;
-  return `
-  <div class="card resumen">
-    <div><b>${enCurso}</b>En taller</div>
-    <div class="${listos?'alerta':''}"><b>${listos}</b>Listos sin entregar</div>
-    <div><b>${t.length}</b>Total registrados</div>
-  </div>
-  <div class="card">
-    <h3>Nuevo transformador</h3>
-    <form data-accion="nuevoT">
-      <label>Placa / serie *<input name="placa" required></label>
-      <label>Cliente *<input name="cliente" required></label>
-      <label>Teléfono<input name="telefono"></label>
-      <label>kVA<input name="kva"></label>
-      <label>Voltaje<input name="voltaje"></label>
-      <label>Tipo<select name="tipo"><option>Aceite</option><option>Seco</option></select></label>
-      <label>Fecha de llegada<input type="date" name="llegada" value="${hoy()}"></label>
-      <label>Falla reportada<textarea name="falla" rows="2"></textarea></label>
-      <label>Valor cotizado<input type="number" name="valor" min="0"></label>
-      <label>Etapa<select name="etapa">${ETAPAS.map(e=>`<option>${e}</option>`).join("")}</select></label>
-      <label>Técnico asignado<input name="tecnico"></label>
-      <label>Fotos<input type="file" name="fotos" accept="image/*" multiple capture="environment"></label>
-      <button class="btn" type="submit">Guardar</button>
-    </form>
-  </div>
-  <div class="card">
-    <h3>Buscar</h3>
-    <input id="buscarT" placeholder="Placa, cliente, etapa o técnico">
-    <div id="listaT" style="margin-top:8px"></div>
-  </div>`;
+/* ---------- 6. Acciones de negocio ---------- */
+function avanzar(id){
+  const t = tGet(id); if(!t) return;
+  if(t.etapa === "terminados"){ abrirModal("entrega", id); return; }
+  const r = puedeAvanzar(t);
+  if(!r.ok){ alert(r.motivo); return; }
+  if(t.etapa === "mantenimiento" || t.etapa === "reparacion"){ abrirModal("hornoEntrada", id); return; }
+  if(t.etapa === "horno"){ abrirModal("hornoSalida", id); return; }
+  moverA(t, siguiente(t), "");
+  guardar(); render();
 }
-function listaTransformadores(filtro=""){
+function retroceder(id){
+  const t = tGet(id); if(!t) return;
+  const ant = anterior(t); if(!ant) return;
+  const e = t.etapa;
+  if(e === "horno"){
+    const v = visitaAbierta(t);
+    if(!confirm("El equipo está dentro del horno. Se registrará la salida y volverá a la etapa de trabajo. ¿Continuar?")) return;
+    if(v) v.salida = {fecha:fechaLocal(), hora:horaLocal(), temp:null, nota:"Salida sin pruebas: devuelto a la etapa de trabajo"};
+    moverA(t, ant, "Devuelto desde el horno");
+    guardar(); render(); return;
+  }
+  if(e === "espera_cliente"){
+    if(!confirm("Volver a Pruebas Iniciales borra la aprobación del cliente y habrá que cotizar de nuevo. ¿Continuar?")) return;
+    t.aprobacionCliente = null;
+    t.requiereAprobacion = true;
+    moverA(t, "pruebas_iniciales", "Devuelto a pruebas iniciales: se anula la aprobación");
+    guardar(); render(); return;
+  }
+  if((e === "mantenimiento" || e === "reparacion") && !confirm("¿Volver a En Espera de Cliente? El equipo queda otra vez en pausa de cliente.")) return;
+  if(e === "armado" && !confirm("¿Devolver el equipo al Horno? Deberás registrar un nuevo ingreso.")) return;
+  if(e === "pruebas_finales" && !confirm("¿Volver a Armado? Las pruebas ya registradas se conservan.")) return;
+  if(e === "terminados" && !confirm("¿Reabrir el equipo? Vuelve a Pruebas Finales.")) return;
+  if(e === "pruebas_iniciales" && !confirm("¿Volver a Ingresados?")) return;
+  const motivo = prompt("Motivo del retroceso (opcional):", "");
+  if(motivo === null) return;
+  moverA(t, ant, motivo ? ("Retroceso: " + motivo) : "Retroceso");
+  guardar(); render();
+}
+function cambiarRuta(id, nueva){
+  const t = tGet(id); if(!t) return;
+  if(t.etapa !== "pruebas_iniciales"){ alert("La ruta solo se puede cambiar en Pruebas Iniciales."); return; }
+  if(t.ruta === nueva) return;
+  if(!t.ruta){ t.ruta = nueva; guardar(); render(); return; }   // definición inicial, no es un cambio
+  if(!(t.diagnostico && String(t.diagnostico.nota||"").trim())){
+    alert("Primero registra el resultado de las pruebas iniciales: el cambio de ruta se justifica con lo que encontraste.");
+    return;
+  }
+  const previa = t.ruta;
+  if(!confirm("Cambiar la ruta de " + RUTAS[previa] + " a " + RUTAS[nueva] + ".\n\nEl equipo pasará a En Espera de Cliente y quedará bloqueado hasta que el cliente apruebe. ¿Continuar?")) return;
+  const motivo = prompt("Motivo del cambio de ruta:", "");
+  if(motivo === null) return;
+  t.ruta = nueva;
+  t.cambiosRuta.push({fecha:fechaLocal(), hora:horaLocal(), de:previa, a:nueva, motivo:motivo || ""});
+  t.requiereAprobacion = true;
+  t.aprobacionCliente = null;
+  moverA(t, "espera_cliente", "Cambio de ruta " + RUTAS[previa] + " → " + RUTAS[nueva] + (motivo ? " · " + motivo : ""));
+  guardar(); render();
+  alert("Ruta cambiada a " + RUTAS[nueva] + ".\nEl equipo pasó a En Espera de Cliente y queda bloqueado hasta la aprobación del cliente.");
+}
+function ingresarHorno(id, temp, nota){
+  const t = tGet(id); if(!t) return;
+  const x = numOrNull(temp);
+  if(x === null){ alert("Registra la temperatura del horno."); return; }
+  const n = (t.horno.ingresos || 0) + 1;
+  t.horno.visitas.push({
+    n:n, entrada:{fecha:fechaLocal(), hora:horaLocal(), temp:x, nota:nota || ""},
+    salida:null, lecturas:[], origen:t.etapa
+  });
+  t.horno.ingresos = n;
+  moverA(t, "horno", "Ingreso al horno #" + n + " · " + x + " °C" + (nota ? " · " + nota : ""));
+  guardar(); render();
+}
+function salirHorno(id, temp, nota){
+  const t = tGet(id); if(!t) return;
+  const v = visitaAbierta(t);
+  if(!v){ alert("No hay un ingreso al horno abierto."); return; }
+  const x = numOrNull(temp);
+  if(x === null){ alert("Registra la temperatura de salida."); return; }
+  v.salida = {fecha:fechaLocal(), hora:horaLocal(), temp:x, nota:nota || ""};
+  moverA(t, "armado", "Salida del horno · " + x + " °C" + (nota ? " · " + nota : ""));
+  guardar(); render();
+}
+function agregarTemp(id, temp, nota){
+  const t = tGet(id); if(!t) return;
+  const v = visitaAbierta(t);
+  if(!v){ alert("Primero registra el ingreso al horno."); return; }
+  const x = numOrNull(temp);
+  if(x === null){ alert("Escribe una temperatura válida."); return; }
+  v.lecturas.push({fecha:fechaLocal(), hora:horaLocal(), temp:x, nota:nota || ""});
+  guardar(); render();
+}
+function registrarSecado(id, vals, fotos, obs){
+  const t = tGet(id); if(!t) return;
+  const u = umbral();
+  const nums = {};
+  for(const p of PRUEBAS_SECADO){
+    const x = numOrNull(vals[p.k]);
+    if(x === null || x <= 0){ alert("Valor inválido en " + p.nom + ". Debe ser un número mayor que cero (MΩ)."); return; }
+    nums[p.k] = x;
+  }
+  for(const p of PRUEBAS_SECADO){
+    if(!fotos[p.k]){ alert("Falta la foto del medidor para " + p.nom + "."); return; }
+  }
+  const minimo = Math.min(nums.atbt, nums.att, nums.btt);
+  const ciclo = {
+    n:((t.secado.ciclos || []).length) + 1,
+    fecha:fechaLocal(), hora:horaLocal(),
+    pruebas:{
+      atbt:{v:nums.atbt, foto:fotos.atbt},
+      att:{v:nums.att, foto:fotos.att},
+      btt:{v:nums.btt, foto:fotos.btt}
+    },
+    minimo:minimo, umbral:u, obs:obs || "",
+    resultado: minimo >= u ? "aprobado" : "bajo"
+  };
+  t.secado.ciclos.push(ciclo);
+  if(ciclo.resultado === "bajo"){
+    moverA(t, "horno", "Aislamiento #" + ciclo.n + " por debajo del mínimo (" + numTxt(minimo) + " MΩ < " + numTxt(u) + " MΩ). Vuelve al horno.");
+    guardar(); render();
+    alert("Aislamiento #" + ciclo.n + " NO cumple: el mínimo fue " + numTxt(minimo) + " MΩ y el umbral es " + numTxt(u) + " MΩ.\n\nEl equipo vuelve al Horno. Registra la temperatura del nuevo ingreso.");
+    abrirModal("hornoEntrada", id);
+  }else{
+    guardar(); render();
+  }
+}
+async function guardarFinal(id, k, form){
+  const t = tGet(id); if(!t) return;
+  const spec = PRUEBAS_FINALES.find(x => x.k === k); if(!spec) return;
+  const fd = new FormData(form);
+  const d = Object.fromEntries(fd);
+  const na = d.na === "on";
+  t.finales = t.finales || {};
+  const prev = t.finales[k] || {};
+  let foto = prev.foto || "";
+  const file = form.querySelector('input[type=file]');
+  if(file && file.files && file.files[0]){
+    foto = await comprimirImagen(file.files[0], 900, 0.6);
+  }
+  if(na){
+    if(!String(d.naMotivo||"").trim()){ alert("Explica por qué esta prueba no aplica."); return; }
+    t.finales[k] = {estado:"na", naMotivo:String(d.naMotivo).trim(), campos:{}, foto:"", fecha:fechaLocal(), hora:horaLocal()};
+  }else{
+    const campos = {};
+    spec.campos.forEach(c => campos[c.k] = String(d[c.k] ?? "").trim());
+    if(!spec.campos.some(c => campos[c.k] !== "")){ alert("Registra al menos un valor de " + spec.nom + "."); return; }
+    t.finales[k] = {estado:"registrada", campos:campos, foto:foto, naMotivo:"", fecha:fechaLocal(), hora:horaLocal()};
+  }
+  guardar(); render();
+}
+function registrarEntrega(id, d){
+  const t = tGet(id); if(!t) return;
+  t.entrega = {fecha:d.fecha || fechaLocal(), recibidoPor:d.recibidoPor || "", obs:d.obs || ""};
+  moverA(t, "entregado", "Entregado a " + (d.recibidoPor || "cliente"));
+  guardar(); render(); cerrarModal();
+}
+
+/* ---------- 7. Menú y render ---------- */
+function pintarMenu(){
+  $("menu").innerHTML = Object.entries(VISTAS).map(([k,v]) =>
+    `<button type="button" class="${k===vista?'activa':''}" data-vista="${k}" ${k===vista?'aria-current="page"':''}>${v}</button>`).join("");
+}
+function render(){
+  pintarMenu();
+  document.body.classList.toggle("ancho", vista === "tablero");
+  document.body.classList.toggle("apilar", vista === "tablero" && apilarColumnas);
+  const fn = {tablero:vistaTablero, equipos:vistaEquipos, materiales:vistaMateriales, personal:vistaPersonal, documentos:vistaDocumentos, respaldo:vistaRespaldo}[vista];
+  $("contenido").innerHTML = fn();
+  document.body.classList.toggle("modal-abierto", !!modalActual);
+  pintarModal();
+}
+
+/* ---------- 8. Tablero ---------- */
+function vistaTablero(){
+  const t = db.transformadores;
+  const enProceso = t.filter(x => x.etapa !== "entregado" && x.etapa !== "terminados").length;
+  const enHorno = t.filter(x => x.etapa === "horno").length;
+  const listos = t.filter(x => x.etapa === "terminados").length;
+  const atrasados = t.filter(x => x.etapa === "horno" && diasDesde(desdeEtapa(x)) >= 3).length;
+  const hayEjemplos = t.some(x => x.ejemplo);
+  return `
+  <div class="resumen">
+    <div><b>${enProceso}</b><span>En proceso</span></div>
+    <div class="${enHorno?'ojo':''}"><b>${enHorno}</b><span>En horno</span></div>
+    <div class="${listos?'ojo':''}"><b>${listos}</b><span>Terminados sin entregar</span></div>
+    <div class="${atrasados?'ojo':''}"><b>${atrasados}</b><span>Horno 3+ días</span></div>
+  </div>
+  <div class="barra-tablero">
+    <input id="buscarTablero" type="search" placeholder="Buscar placa, cliente o técnico" value="${esc(filtroTablero)}">
+    ${hayEjemplos ? `<button type="button" class="btn suave" data-accion="borrarEjemplos">Quitar ejemplos</button>` : ""}
+    <button type="button" class="btn suave" data-accion="toggleApilar" title="Cambiar entre columnas deslizables y lista vertical">${apilarColumnas ? "Ver columnas" : "Ver lista"}</button>
+    <button type="button" class="btn" data-accion="nuevo">+ Nuevo ingreso</button>
+  </div>
+  <p class="pista">Desliza para ver las 9 etapas → · Arrastra una tarjeta o toca <b>Mover</b> para cambiarla de columna</p>
+  <details class="leyenda">
+    <summary>Reglas del flujo</summary>
+    <ul>
+      <li>La ruta (Mantenimiento o Reparación) se define al ingresar. Solo se puede cambiar en <b>Pruebas Iniciales</b>; al cambiarla el equipo pasa a <b>En Espera de Cliente</b> y queda bloqueado hasta la aprobación.</li>
+      <li>Después de la aprobación, el equipo entra a <b>Mantenimiento</b> o a <b>Reparación (Desarme/Bobinado)</b> según la ruta. Ambas convergen en el <b>Horno</b>, con temperatura de ingreso, lecturas y salida.</li>
+      <li>Al salir del horno pasa a <b>Armado</b>. En <b>Pruebas Finales</b> se registran el aislamiento <b>AT-BT, AT-T y BT-T</b> con foto, más Vacío, Cortocircuito y las demás pruebas.</li>
+      <li>Antes de <b>Terminados</b>: Vacío y Cortocircuito son obligatorios; las demás pruebas se registran o se marcan como no aplica.</li>
+    </ul>
+  </details>
+  <div class="tablero" id="tablero">${columnas()}</div>
+  ${bloqueEntregados()}`;
+}
+function columnas(){
+  const f = (filtroTablero || "").toLowerCase();
+  return ETAPAS.map(e => {
+    const items = db.transformadores
+      .filter(t => t.etapa === e.id && (!f || [t.placa,t.cliente,t.tecnico,t.ruta].join(" ").toLowerCase().includes(f)))
+      .sort((a,b) => desdeEtapa(a).localeCompare(desdeEtapa(b)));
+    return `
+    <section class="col" style="--c:${e.color}" data-etapa-col="${e.id}" aria-label="${esc(e.nom)}">
+      <div class="col-cab">
+        <div><h2>${esc(e.nom)}</h2><p>${esc(e.sub)}</p></div>
+        <span class="cuenta">${items.length}</span>
+      </div>
+      <div class="col-cuerpo">
+        ${items.length ? items.map(t => tarjeta(t)).join("") : `<p class="vacio-col">Sin equipos</p>`}
+      </div>
+    </section>`;
+  }).join("");
+}
+function chips(t){
+  const c = [];
+  const d = diasDesde(desdeEtapa(t));
+  if(t.ejemplo) c.push(`<span class="chip ejemplo">Ejemplo</span>`);
+  c.push(`<span class="chip">${d === 0 ? "Hoy" : d + " d"} en etapa</span>`);
+  if(t.aprobacionCliente && t.aprobacionCliente.estado === "aprobado") c.push(`<span class="chip ok">Aprobado</span>`);
+  if(t.etapa === "espera_cliente" && !(t.aprobacionCliente && t.aprobacionCliente.estado === "aprobado")) c.push(`<span class="chip mal">Falta aprobación</span>`);
+  if((t.cambiosRuta||[]).length) c.push(`<span class="chip warn">Ruta cambiada</span>`);
+  if(t.etapa === "horno"){
+    c.push(`<span class="chip horno">${t.horno.ingresos || 0} ingreso${(t.horno.ingresos||0)===1?"":"s"}</span>`);
+    if(d >= 3) c.push(`<span class="chip mal">⚠ ${d} d en horno</span>`);
+  }
+  if(t.etapa === "pruebas_finales"){
+    const u = ultimoCiclo(t);
+    if(u) c.push(`<span class="chip ${u.resultado==="aprobado"?"ok":"mal"}">Aislamiento ${u.resultado==="aprobado"?"OK":"bajo"} · ${numTxt(u.minimo)} MΩ</span>`);
+    const ok = PRUEBAS_FINALES.filter(p => estadoPrueba(t,p.k) === "registrada").length;
+    c.push(`<span class="chip ${ok>=2?'ok':''}">Finales ${ok}/6</span>`);
+  }
+  return c.join("");
+}
+function primaria(t){
+  if(t.etapa === "entregado") return null;
+  if(t.etapa === "terminados") return {label:"Entregar", accion:"entrega", disabled:false, motivo:""};
+  if(!siguiente(t)) return null;
+  const L = {
+    ingresados:"Iniciar pruebas",
+    pruebas_iniciales:"Enviar a cotización",
+    espera_cliente:(t.ruta === "mantenimiento" ? "Iniciar mantenimiento" : "Iniciar reparación"),
+    mantenimiento:"Ingresar al Horno",
+    reparacion:"Ingresar al Horno",
+    horno:"Salir del Horno",
+    armado:"Iniciar pruebas finales",
+    pruebas_finales:"Marcar terminado"
+  };
+  let label = L[t.etapa] || "Avanzar", accion = "avanzar", disabled = false, motivo = "";
+  const r = puedeAvanzar(t);
+  if(t.etapa === "pruebas_finales" && (!ultimoCiclo(t) || ultimoCiclo(t).resultado !== "aprobado" || faltantesFinales(t).length)){
+    accion = "ficha"; label = "Completar pruebas";
+  }
+  else if(t.etapa === "horno" && !visitaAbierta(t)){ accion = "hornoEntrada"; label = "Registrar ingreso al Horno"; }
+  else if(t.etapa === "mantenimiento" || t.etapa === "reparacion"){ accion = "hornoEntrada"; }
+  else if(t.etapa === "horno"){ accion = "hornoSalida"; }
+  else if(!r.ok){ disabled = true; motivo = r.motivo; }
+  return {label:label, accion:accion, disabled:disabled, motivo:motivo};
+}
+function tarjeta(t){
+  const p = primaria(t);
+  const ant = anterior(t);
+  const et = ETAPA[t.etapa] || ENTREGADO;
+  const enTaller = t.llegada ? diasDesde(t.llegada) : 0;
+  return `<article class="tarjeta" style="--c:${et.color};--tinta:${et.tinta || "#fff"}" data-id="${t.id}" data-etapa="${esc(t.etapa)}" draggable="true">
+    <div class="t-cab">
+      <span class="t-placa">${esc(t.placa)}</span>
+      <span class="chip ruta ${t.ruta || "sin"}">${t.ruta ? RUTAS[t.ruta] : "Sin ruta"}</span>
+    </div>
+    <div class="t-cli">${esc(t.cliente)}</div>
+    <div class="t-fecha">Ingresó <b>${esc(fechaCorta(t.llegada))}</b>${t.llegada ? " · " + (enTaller === 0 ? "hoy" : enTaller + " d en taller") : ""}</div>
+    <div class="t-meta">${[t.kva ? esc(t.kva) + " kVA" : "", t.tipo ? esc(t.tipo) : "", t.tecnico ? esc(t.tecnico) : ""].filter(Boolean).join(" · ") || "Sin datos técnicos"}</div>
+    <div class="t-chips">${chips(t)}</div>
+    ${p && p.motivo ? `<p class="t-bloqueo">${esc(p.motivo)}</p>` : ""}
+    <div class="t-acc">
+      ${ant ? `<button type="button" class="mini icono" data-accion="atras" data-id="${t.id}" title="Retroceder a ${esc(ETAPA[ant].nom)}" aria-label="Retroceder a ${esc(ETAPA[ant].nom)}">←</button>` : ""}
+      <button type="button" class="mini" data-accion="ficha" data-id="${t.id}">Ficha</button>
+      <button type="button" class="mini" data-accion="moverTarjeta" data-id="${t.id}" title="Mover a otra columna" aria-label="Mover a otra columna">Mover</button>
+      ${p ? `<button type="button" class="mini prim" data-accion="${p.accion}" data-id="${t.id}" ${p.disabled ? "disabled" : ""} title="${esc(p.motivo || p.label)}">${esc(p.label)} →</button>` : ""}
+    </div>
+  </article>`;
+}
+function bloqueEntregados(){
+  const ent = db.transformadores.filter(t => t.etapa === "entregado");
+  if(!ent.length) return "";
+  return `<details class="archivo">
+    <summary>Entregados (${ent.length})</summary>
+    <div class="archivo-lista">
+      ${ent.map(t => `<div class="archivo-item"><span><b>${esc(t.placa)}</b> · ${esc(t.cliente)} · ${esc((t.entrega||{}).fecha || "")}</span><button type="button" class="mini" data-accion="ficha" data-id="${t.id}">Ficha</button></div>`).join("")}
+    </div>
+  </details>`;
+}
+function pintarTablero(){ const el = $("tablero"); if(el) el.innerHTML = columnas(); }
+
+/* Mueve una tarjeta a la columna elegida (clic en "Mover" o arrastrar y soltar).
+   Si el destino es lejano, avanza paso a paso y se detiene en la primera
+   compuerta que falte, para no saltarse las reglas del taller. */
+function moverHacia(id, destino){
+  const t = tGet(id); if(!t) return;
+  if(!destino || destino === t.etapa){ cerrarModal(); return; }
+  cerrarModal();
+  if(destino === "entregado"){ abrirModal("entrega", id); return; }
+  const desde = idx(t.etapa), hasta = idx(destino);
+  if(desde < 0 || hasta < 0) return;
+
+  if(hasta === desde + 1){ avanzar(id); return; }
+  if(hasta === desde - 1){ retroceder(id); return; }
+
+  if(hasta > desde){
+    if(!confirm("Mover " + t.placa + " de " + ETAPA[t.etapa].nom + " hasta " + ETAPA[destino].nom +".\n\nEl equipo avanza paso a paso y se detiene si falta un requisito. ¿Continuar?")) return;
+    let pasos = 0;
+    while(t.etapa !== destino && pasos < 12){
+      const r = puedeAvanzar(t);
+      if(!r.ok){ alert("Se detuvo en " + ETAPA[t.etapa].nom + ".\n\n" + r.motivo); break; }
+      const sig = siguiente(t);
+      if(!sig) break;
+      if(t.etapa === "terminados") break;
+      if(t.etapa === "mantenimiento" || t.etapa === "reparacion" || t.etapa === "horno"){
+        guardar(); render();
+        alert("Para seguir desde " + ETAPA[t.etapa].nom + " hay que registrar la " +
+          (t.etapa === "horno" ? "salida del horno." : "entrada al horno."));
+        abrirModal(t.etapa === "horno" ? "hornoSalida" : "hornoEntrada", id);
+        return;
+      }
+      moverA(t, sig, "Movimiento desde el tablero");
+      pasos++;
+    }
+    guardar(); render();
+    return;
+  }
+
+  if(!confirm("Devolver " + t.placa + " de " + ETAPA[t.etapa].nom + " hasta " + ETAPA[destino].nom +".\n\nQuedará registrado en el historial. ¿Continuar?")) return;
+  let pasos = 0;
+  while(t.etapa !== destino && pasos < 12){
+    const ant = anterior(t);
+    if(!ant) break;
+    if(t.etapa === "horno"){
+      const v = visitaAbierta(t);
+      if(v) v.salida = {fecha:fechaLocal(), hora:horaLocal(), temp:null, nota:"Salida por retroceso desde el tablero"};
+    }
+    if(t.etapa === "espera_cliente"){
+      t.aprobacionCliente = null;
+      t.requiereAprobacion = true;
+    }
+    moverA(t, ant, "Retroceso desde el tablero");
+    pasos++;
+  }
+  guardar(); render();
+}
+
+/* ---------- 9. Vista Equipos ---------- */
+function vistaEquipos(){
+  return `
+  <div class="barra-tablero">
+    <input id="buscarT" type="search" placeholder="Buscar placa, cliente, etapa o técnico">
+    <button type="button" class="btn" data-accion="nuevo">+ Nuevo ingreso</button>
+  </div>
+  <div class="card"><div id="listaT">${listaTransformadores("")}</div></div>`;
+}
+function listaTransformadores(filtro){
+  filtro = filtro || "";
   const f = filtro.toLowerCase();
   const items = db.transformadores
-    .filter(t => !f || [t.placa,t.cliente,t.etapa,t.tecnico].join(" ").toLowerCase().includes(f))
+    .filter(t => !f || [t.placa,t.cliente,t.etapa,t.tecnico,RUTAS[t.ruta]||""].join(" ").toLowerCase().includes(f))
     .sort((a,b) => (b.llegada||"").localeCompare(a.llegada||""));
   if(!items.length) return `<p class="aviso">No hay transformadores que coincidan.</p>`;
   return items.map(t => `
     <div class="fila">
-      <div class="titulo">${esc(t.placa)} · ${esc(t.cliente)}</div>
-      <div class="aviso">${esc(t.kva)} kVA · ${esc(t.voltaje)} · ${esc(t.tipo)} · llegó ${esc(t.llegada)}</div>
-      <div class="aviso">Técnico: ${esc(t.tecnico||"sin asignar")} · Cotizado: ${dinero(t.valor)}</div>
-      <div class="aviso">${esc(t.falla)}</div>
-      <select data-accion="cambiarEtapa" data-id="${t.id}">
-        ${ETAPAS.map(e=>`<option ${e===t.etapa?'selected':''}>${e}</option>`).join("")}
-      </select>
-      <div class="fotos">${(t.fotos||[]).map(f=>`<img src="${f}">`).join("")}</div>
-      <button class="btn peligro" data-accion="borrarT" data-id="${t.id}">Eliminar</button>
+      <div class="titulo">${esc(t.placa)} · ${esc(t.cliente)}
+        <span class="etiqueta">${esc(ETAPA[t.etapa] ? ETAPA[t.etapa].nom : t.etapa)}</span>
+        ${t.ruta ? `<span class="etiqueta">${esc(RUTAS[t.ruta])}</span>` : ""}
+      </div>
+      <div class="aviso">${esc(t.kva || "—")} kVA · ${esc(t.voltaje || "—")} · ${esc(t.tipo || "—")} · llegó ${esc(t.llegada || "—")}</div>
+      <div class="aviso">Técnico: ${esc(t.tecnico || "sin asignar")} · Cotización: ${dinero(t.valor)} · Horno: ${(t.horno&&t.horno.ingresos)||0} ingreso(s)</div>
+      <div class="aviso">${esc(t.falla || "")}</div>
+      <div class="fotos">${(t.fotos||[]).map(f => `<img src="${f}" alt="Foto del equipo">`).join("")}</div>
+      <button type="button" class="btn sm" data-accion="ficha" data-id="${t.id}">Abrir ficha</button>
+      <button type="button" class="btn peligro sm" data-accion="borrarT" data-id="${t.id}">Eliminar</button>
     </div>`).join("");
 }
+function listaT(){
+  const el = $("listaT"); if(!el) return;
+  el.innerHTML = listaTransformadores(($("buscarT") && $("buscarT").value) || "");
+}
 
-/* ---------- Materiales ---------- */
+/* ---------- 10. Materiales / Personal / Documentos / Respaldo ---------- */
 function vistaMateriales(){
   const total = db.materiales.reduce((s,m) => s + (m.cantidad||0)*(m.costo||0), 0);
   return `
-  <div class="card resumen"><div><b>${db.materiales.length}</b>Materiales</div><div><b>${dinero(total)}</b>Valor en almacén</div></div>
+  <div class="resumen"><div><b>${db.materiales.length}</b><span>Materiales</span></div><div><b>${dinero(total)}</b><span>Valor en almacén</span></div></div>
   <div class="card">
     <h3>Nuevo material o herramienta</h3>
     <form data-accion="nuevoM">
@@ -168,15 +982,13 @@ function listaMateriales(){
   return db.materiales.map(m => `
     <div class="fila">
       <div class="titulo">${esc(m.nombre)} <span class="etiqueta">${esc(m.tipo)}</span></div>
-      <div class="aviso">Stock: <b>${m.cantidad} ${esc(m.unidad)}</b> · Ubicación: ${esc(m.ubicacion||"-")} · Valor: ${dinero((m.cantidad||0)*(m.costo||0))}</div>
-      <button class="btn" data-accion="movM" data-id="${m.id}" data-signo="1">+ Entrada</button>
-      <button class="btn suave" data-accion="movM" data-id="${m.id}" data-signo="-1">- Salida</button>
-      <button class="btn peligro" data-accion="borrarM" data-id="${m.id}">Eliminar</button>
-      <div class="fotos">${m.foto ? `<img src="${m.foto}">` : ""}</div>
+      <div class="aviso">Stock: <b>${esc(m.cantidad)} ${esc(m.unidad)}</b> · Ubicación: ${esc(m.ubicacion||"-")} · Valor: ${dinero((m.cantidad||0)*(m.costo||0))}</div>
+      <button type="button" class="btn sm" data-accion="movM" data-id="${m.id}" data-signo="1">+ Entrada</button>
+      <button type="button" class="btn suave sm" data-accion="movM" data-id="${m.id}" data-signo="-1">- Salida</button>
+      <button type="button" class="btn peligro sm" data-accion="borrarM" data-id="${m.id}">Eliminar</button>
+      <div class="fotos">${m.foto ? `<img src="${m.foto}" alt="${esc(m.nombre)}">` : ""}</div>
     </div>`).join("");
 }
-
-/* ---------- Personal ---------- */
 function vistaPersonal(){
   return `
   <div class="card">
@@ -197,28 +1009,26 @@ function listaPersonal(){
   if(!db.personal.length) return `<p class="aviso">Aún no hay personal registrado.</p>`;
   return db.personal.map(p => {
     const cajas = p.cajas || [];
-    const pendiente = cajas.filter(c => !c.legalizada).reduce((s,c)=>s+c.monto,0);
+    const pendiente = cajas.filter(c => !c.legalizada).reduce((s,c) => s + c.monto, 0);
     return `
     <div class="fila">
       <div class="titulo">${esc(p.nombre)} <span class="etiqueta">${esc(p.cargo)}</span></div>
       <div class="aviso">${esc(p.tipoPago)}: ${dinero(p.valor)} · Tel: ${esc(p.telefono||"-")}</div>
       <div class="aviso">Afiliación: ${esc(p.afiliacion||"-")}</div>
       <div class="aviso ${pendiente?'alerta':''}">Cajas sin legalizar: <b>${dinero(pendiente)}</b></div>
-      ${cajas.map(c => `<div class="aviso">• ${esc(c.fecha)} ${dinero(c.monto)} ${esc(c.concepto)} ${c.legalizada?'✔':'<button class="btn" data-accion="legalizar" data-id="'+p.id+'" data-caja="'+c.id+'">Legalizar</button>'}</div>`).join("")}
-      <button class="btn" data-accion="nuevaCaja" data-id="${p.id}">+ Caja entregada</button>
-      <button class="btn peligro" data-accion="borrarP" data-id="${p.id}">Eliminar</button>
+      ${cajas.map(c => `<div class="aviso">• ${esc(c.fecha)} ${dinero(c.monto)} ${esc(c.concepto)} ${c.legalizada ? "✔" : `<button type="button" class="btn sm" data-accion="legalizar" data-id="${p.id}" data-caja="${c.id}">Legalizar</button>`}</div>`).join("")}
+      <button type="button" class="btn sm" data-accion="nuevaCaja" data-id="${p.id}">+ Caja entregada</button>
+      <button type="button" class="btn peligro sm" data-accion="borrarP" data-id="${p.id}">Eliminar</button>
     </div>`;
   }).join("");
 }
-
-/* ---------- Documentos ---------- */
 function vistaDocumentos(){
   return `
   <div class="card">
     <h3>Subir documento</h3>
     <form data-accion="nuevoD">
       <label>Archivo (PDF, Excel, Word, imagen) *<input type="file" name="archivo" required></label>
-      <label>Categoría<select name="categoria">${CATEGORIAS.map(c=>`<option>${c}</option>`).join("")}</select></label>
+      <label>Categoría<select name="categoria">${CATEGORIAS.map(c => `<option>${esc(c)}</option>`).join("")}</select></label>
       <label>Descripción<input name="descripcion" placeholder="Ej: Balance marzo 2026"></label>
       <button class="btn" type="submit">Guardar</button>
       <p class="aviso">Máximo 3 MB por archivo. Para archivos grandes, guárdalos en Drive o en la carpeta del computador.</p>
@@ -232,114 +1042,435 @@ function listaDocumentos(){
     <div class="fila">
       <div class="titulo">${esc(d.nombre)} <span class="etiqueta">${esc(d.categoria)}</span></div>
       <div class="aviso">${esc(d.descripcion)} · ${esc(d.fecha)} · ${(d.tamano/1024).toFixed(0)} KB</div>
-      <a href="${d.datos}" download="${esc(d.nombre)}"><button class="btn">Descargar</button></a>
-      <button class="btn peligro" data-accion="borrarD" data-id="${d.id}">Eliminar</button>
+      <a href="${d.datos}" download="${esc(d.nombre)}"><button type="button" class="btn sm">Descargar</button></a>
+      <button type="button" class="btn peligro sm" data-accion="borrarD" data-id="${d.id}">Eliminar</button>
     </div>`).join("");
 }
-
-/* ---------- Respaldo ---------- */
 function vistaRespaldo(){
   return `
-  <div class="card resumen">
-    <div><b>${db.transformadores.length}</b>Transformadores</div>
-    <div><b>${db.materiales.length}</b>Materiales</div>
-    <div><b>${db.personal.length}</b>Personal</div>
-    <div><b>${db.documentos.length}</b>Documentos</div>
+  <div class="resumen">
+    <div><b>${db.transformadores.length}</b><span>Transformadores</span></div>
+    <div><b>${db.materiales.length}</b><span>Materiales</span></div>
+    <div><b>${db.personal.length}</b><span>Personal</span></div>
+    <div><b>${db.documentos.length}</b><span>Documentos</span></div>
+  </div>
+  <div class="card">
+    <h3>Umbral de aislamiento</h3>
+    <form data-accion="configSecado">
+      <label>Mínimo de aislamiento para aprobar las pruebas (MΩ)</label>
+      <input type="number" name="umbral" min="1" step="any" value="${umbral()}" required>
+      <p class="aviso">Si cualquiera de las tres pruebas (AT-BT, AT-T, BT-T) queda por debajo de este valor, el equipo vuelve al horno automáticamente.</p>
+      <button class="btn" type="submit">Guardar umbral</button>
+    </form>
   </div>
   <div class="card">
     <h3>Copia de seguridad</h3>
-    <p class="aviso">Los datos se guardan en este navegador. Exporta un respaldo JSON al menos una vez por semana y guárdalo en tu computador o Drive. Ese archivo también sirve para pasar la información del celular al computador.</p>
-    <button class="btn" data-accion="exportar">Exportar respaldo (.json)</button>
+    <p class="aviso">Los datos se guardan en este navegador (${usoKB()} KB usados). Exporta un respaldo JSON al menos una vez por semana y guárdalo en tu computador o Drive. Ese archivo también sirve para pasar la información del celular al computador.</p>
+    <button type="button" class="btn" data-accion="exportar">Exportar respaldo (.json)</button>
   </div>
   <div class="card">
     <h3>Restaurar respaldo</h3>
     <p class="aviso">Esto reemplaza los datos actuales por los del archivo.</p>
     <input type="file" id="archivoImport" accept=".json,application/json">
-    <button class="btn" data-accion="importar">Importar</button>
+    <button type="button" class="btn" data-accion="importar">Importar</button>
   </div>
   <div class="card">
-    <button class="btn peligro" data-accion="borrarTodo">Borrar todos los datos de este navegador</button>
+    <button type="button" class="btn peligro" data-accion="borrarTodo">Borrar todos los datos de este navegador</button>
   </div>`;
 }
 
-/* ---------- Render ---------- */
-function render(){
-  pintarMenu();
-  const fn = {transformadores:vistaTransformadores, materiales:vistaMateriales, personal:vistaPersonal, documentos:vistaDocumentos, respaldo:vistaRespaldo}[vista];
-  document.getElementById("contenido").innerHTML = fn();
-  if(vista==="transformadores") listaT();
+/* ---------- 11. Ficha (modal) ---------- */
+function abrirModal(tipo, id){
+  focoPrevio = document.activeElement;
+  modalActual = {tipo:tipo, id:id || null};
+  document.body.classList.add("modal-abierto");
+  pintarModal();
+  const x = $("modal-x"); if(x) x.focus();
 }
-function listaT(){ document.getElementById("listaT").innerHTML = listaTransformadores(document.getElementById("buscarT")?.value || ""); }
-
-/* ---------- Eventos ---------- */
-document.getElementById("menu").addEventListener("click", e => {
-  const b = e.target.closest("[data-vista]"); if(!b) return;
-  vista = b.dataset.vista; render();
-});
-
-const main = document.getElementById("contenido");
-
-main.addEventListener("input", e => { if(e.target.id==="buscarT") listaT(); });
-
-main.addEventListener("change", async e => {
-  if(e.target.dataset.accion==="cambiarEtapa"){
-    const t = db.transformadores.find(x=>x.id===e.target.dataset.id);
-    if(t){ t.etapa = e.target.value; t.historial = [...(t.historial||[]), {fecha:hoy(), etapa:e.target.value}]; guardar(); render(); }
+function cerrarModal(){
+  modalActual = null;
+  document.body.classList.remove("modal-abierto");
+  const m = $("modal");
+  m.classList.remove("abierto"); m.setAttribute("aria-hidden","true");
+  $("modal-cuerpo").innerHTML = "";
+  const f = focoPrevio; focoPrevio = null;
+  if(f && f.focus){ try{ f.focus(); }catch(e){} }
+}
+function pintarModal(){
+  const m = $("modal");
+  if(!modalActual){
+    m.classList.remove("abierto"); m.setAttribute("aria-hidden","true"); $("modal-cuerpo").innerHTML = "";
+    return;
   }
-});
-
-main.addEventListener("submit", async e => {
-  e.preventDefault();
-  const f = e.target, accion = f.dataset.accion;
-  const d = Object.fromEntries(new FormData(f));
-
-  if(accion==="nuevoT"){
-    const fotos = [];
-    for(const file of f.fotos.files) fotos.push(await comprimirImagen(file));
-    db.transformadores.push({id:nuevoId(), placa:d.placa, cliente:d.cliente, telefono:d.telefono, kva:d.kva, voltaje:d.voltaje,
-      tipo:d.tipo, llegada:d.llegada, falla:d.falla, valor:Number(d.valor)||0, etapa:d.etapa, tecnico:d.tecnico,
-      fotos, historial:[{fecha:d.llegada, etapa:d.etapa}]});
+  const t = modalActual.id ? tGet(modalActual.id) : null;
+  let titulo = "", cuerpo = "";
+  if(modalActual.tipo === "nuevo"){ titulo = "Nuevo ingreso"; cuerpo = htmlNuevo(); }
+  else if(!t){ cerrarModal(); return; }
+  else if(modalActual.tipo === "ficha"){ titulo = t.placa + " · " + t.cliente; cuerpo = htmlFicha(t); }
+  else if(modalActual.tipo === "mover"){ titulo = "Mover · " + t.placa; cuerpo = htmlMover(t); }
+  else if(modalActual.tipo === "hornoEntrada"){ titulo = "Ingresar al Horno · " + t.placa; cuerpo = htmlHornoEntrada(t); }
+  else if(modalActual.tipo === "hornoSalida"){ titulo = "Salir del Horno · " + t.placa; cuerpo = htmlHornoSalida(t); }
+  else if(modalActual.tipo === "entrega"){ titulo = "Entregar · " + t.placa; cuerpo = htmlEntregaForm(t); }
+  else { titulo = t.placa; cuerpo = htmlFicha(t); }
+  $("modal-titulo").textContent = titulo;
+  $("modal-cuerpo").innerHTML = cuerpo;
+  m.classList.add("abierto"); m.setAttribute("aria-hidden","false");
+}
+function htmlNuevo(){
+  return `<form data-accion="nuevoT">
+    <p class="aviso">El equipo entra siempre a la columna <b>Ingresados</b>.</p>
+    <div class="grid2">
+      <label>Placa / serie *<input name="placa" required autocomplete="off"></label>
+      <label>Cliente *<input name="cliente" required autocomplete="off"></label>
+      <label>Teléfono<input name="telefono" inputmode="tel"></label>
+      <label>kVA<input name="kva" inputmode="decimal"></label>
+      <label>Voltaje<input name="voltaje" placeholder="Ej: 13200/220"></label>
+      <label>Tipo<select name="tipo"><option>Aceite</option><option>Seco</option></select></label>
+      <label>Fecha de llegada<input type="date" name="llegada" value="${fechaLocal()}"></label>
+      <label>Técnico asignado<input name="tecnico"></label>
+    </div>
+    <label>Ruta de ingreso *<select name="ruta" required>
+      <option value="">— Elegir —</option>
+      <option value="mantenimiento">Mantenimiento</option>
+      <option value="reparacion">Reparación</option>
+    </select></label>
+    <label>Falla reportada<textarea name="falla" rows="2"></textarea></label>
+    <label>Fotos<input type="file" name="fotos" accept="image/*" multiple capture="environment"></label>
+    <div class="btn-fila">
+      <button class="btn" type="submit">Registrar ingreso</button>
+      <button class="btn suave" type="button" data-accion="cerrarModal">Cancelar</button>
+    </div>
+  </form>`;
+}
+function htmlFicha(t){
+  const nivel = t.etapa === "entregado" ? ORDEN.length : idx(t.etapa);
+  const p = [];
+  const et = ETAPA[t.etapa] || ENTREGADO;
+  p.push(`<div class="sec">
+    <div class="chip-fila">
+      <span class="chip" style="background:${et.color};color:${et.tinta||"#fff"};border-color:${et.color}">${esc(et.nom)}</span>
+      <span class="chip ruta ${t.ruta||"sin"}">${t.ruta ? RUTAS[t.ruta] : "Sin ruta"}</span>
+      <span class="chip">${diasDesde(desdeEtapa(t))} d en esta etapa</span>
+      ${t.entrega ? `<span class="chip ok">Entregado ${esc(t.entrega.fecha)}</span>` : ""}
+    </div>
+    <p class="aviso">Ingresó ${esc(t.llegada || "—")} · ${esc(t.falla || "sin falla reportada")}</p>
+  </div>`);
+  p.push(htmlDatos(t));
+  if(nivel >= idx("pruebas_iniciales")) p.push(htmlRuta(t));
+  if(nivel >= idx("pruebas_iniciales")) p.push(htmlDiagnostico(t));
+  if(nivel >= idx("espera_cliente")) p.push(htmlCotizacion(t));
+  if(nivel >= idx("horno")) p.push(htmlHorno(t));
+  if(nivel >= idx("pruebas_finales")) p.push(htmlSecado(t));
+  if(nivel >= idx("pruebas_finales")) p.push(htmlFinales(t));
+  if(t.etapa === "terminados" || t.etapa === "entregado") p.push(htmlEntrega(t));
+  p.push(htmlHistorial(t));
+  return p.join("");
+}
+function htmlDatos(t){
+  return `<div class="sec"><h3>Datos del equipo</h3>
+    <form data-accion="guardarDatos">
+      <div class="grid2">
+        <label>Placa / serie<input name="placa" value="${esc(t.placa)}" required></label>
+        <label>Cliente<input name="cliente" value="${esc(t.cliente)}" required></label>
+        <label>Teléfono<input name="telefono" value="${esc(t.telefono||"")}" inputmode="tel"></label>
+        <label>kVA<input name="kva" value="${esc(t.kva||"")}" inputmode="decimal"></label>
+        <label>Voltaje<input name="voltaje" value="${esc(t.voltaje||"")}"></label>
+        <label>Tipo<select name="tipo">
+          <option ${t.tipo==="Aceite"?"selected":""}>Aceite</option>
+          <option ${t.tipo==="Seco"?"selected":""}>Seco</option>
+        </select></label>
+        <label>Fecha de llegada<input type="date" name="llegada" value="${esc(t.llegada||"")}"></label>
+        <label>Técnico asignado<input name="tecnico" value="${esc(t.tecnico||"")}"></label>
+      </div>
+      <label>Falla reportada<textarea name="falla" rows="2">${esc(t.falla||"")}</textarea></label>
+      <button class="btn" type="submit">Guardar datos</button>
+    </form>
+  </div>`;
+}
+function htmlRuta(t){
+  const enDiag = t.etapa === "pruebas_iniciales";
+  return `<div class="sec"><h3>Ruta</h3>
+    <div class="chip-fila">
+      <span class="chip ruta ${t.ruta||"sin"}">${t.ruta ? RUTAS[t.ruta] : "Sin definir"}</span>
+      ${(t.cambiosRuta||[]).length ? `<span class="chip warn">${t.cambiosRuta.length} cambio(s) de ruta</span>` : ""}
+    </div>
+    ${enDiag ? `<div class="btn-fila">
+      <button class="btn sm" type="button" data-accion="cambiarRuta" data-id="${t.id}" data-ruta="mantenimiento" ${t.ruta==="mantenimiento"?"disabled":""}>Mantenimiento</button>
+      <button class="btn sm" type="button" data-accion="cambiarRuta" data-id="${t.id}" data-ruta="reparacion" ${t.ruta==="reparacion"?"disabled":""}>Reparación</button>
+    </div>
+    <p class="aviso">Cambiar la ruta envía el equipo a <b>En Espera de Cliente</b> y lo bloquea hasta la aprobación.</p>`
+    : `<p class="aviso">La ruta ya no se puede cambiar: solo se ajusta en Pruebas Iniciales.</p>`}
+    ${(t.cambiosRuta||[]).map(c => `<div class="aviso">• ${esc(c.fecha)} ${esc(c.hora)} · ${esc(RUTAS[c.de])} → ${esc(RUTAS[c.a])}${c.motivo ? " · " + esc(c.motivo) : ""}</div>`).join("")}
+  </div>`;
+}
+function htmlDiagnostico(t){
+  const d = t.diagnostico || {};
+  return `<div class="sec"><h3>Pruebas iniciales</h3>
+    <form data-accion="guardarDiagnostico">
+      <label>Resultado de las pruebas *<textarea name="nota" rows="3" placeholder="Pruebas realizadas, hallazgos, causa probable">${esc(d.nota||"")}</textarea></label>
+      <label>Técnico que evalúa<input name="tecnico" value="${esc(d.tecnico||t.tecnico||"")}"></label>
+      <button class="btn" type="submit">Guardar pruebas iniciales</button>
+      ${d.fecha ? `<p class="aviso">Guardado el ${esc(d.fecha)} ${esc(d.hora||"")}</p>` : ""}
+    </form>
+  </div>`;
+}
+function htmlCotizacion(t){
+  const a = t.aprobacionCliente;
+  const estado = !a ? `<span class="chip mal">Sin aprobación</span>`
+    : a.estado === "aprobado" ? `<span class="chip ok">Aprobado ${esc(a.fecha)}</span>`
+    : `<span class="chip mal">Rechazado ${esc(a.fecha)}</span>`;
+  return `<div class="sec"><h3>Cotización y aprobación</h3>
+    <form data-accion="guardarCotizacion">
+      <label>Valor cotizado (COP) *<input type="number" name="valor" min="0" step="any" value="${Number(t.valor)||0}" required></label>
+      <label>Detalle<textarea name="detalle" rows="2">${esc((t.cotizacion||{}).detalle||"")}</textarea></label>
+      <button class="btn" type="submit">Guardar cotización</button>
+    </form>
+    <div class="chip-fila">${estado}
+      ${a && a.quien ? `<span class="chip">${esc(a.quien)}</span>` : ""}
+      ${a && a.medio ? `<span class="chip">${esc(a.medio)}</span>` : ""}
+    </div>
+    ${a && a.obs ? `<p class="aviso">${esc(a.obs)}</p>` : ""}
+    <div class="btn-fila">
+      <button class="btn ok sm" type="button" data-accion="aprobarCliente" data-id="${t.id}">Cliente aprobó</button>
+      <button class="btn peligro sm" type="button" data-accion="rechazarCliente" data-id="${t.id}">Cliente rechazó</button>
+    </div>
+    ${t.requiereAprobacion ? `<p class="aviso">Este equipo requiere aprobación del cliente: hubo cambio de ruta.</p>` : ""}
+  </div>`;
+}
+function htmlHorno(t){
+  const v = t.horno.visitas || [];
+  const abierta = visitaAbierta(t);
+  const u = ultimoCiclo(t);
+  const filas = v.map(x => `
+    <div class="visita">
+      <div class="visita-cab"><b>Ingreso #${x.n}</b>${x.salida ? `<span class="chip ok">Salió</span>` : `<span class="chip warn">Dentro</span>`}</div>
+      <div class="aviso">Entrada: ${esc(x.entrada.fecha)} ${esc(x.entrada.hora)} · ${x.entrada.temp !== null ? numTxt(x.entrada.temp) + " °C" : "sin temperatura"}${x.entrada.nota ? " · " + esc(x.entrada.nota) : ""}</div>
+      ${x.salida ? `<div class="aviso">Salida: ${esc(x.salida.fecha)} ${esc(x.salida.hora)} · ${x.salida.temp !== null ? numTxt(x.salida.temp) + " °C" : "—"}${x.salida.nota ? " · " + esc(x.salida.nota) : ""}</div>` : ""}
+      ${(x.lecturas||[]).length ? `<table class="tabla-temp"><thead><tr><th>Hora</th><th>Temp.</th><th>Nota</th></tr></thead><tbody>
+        ${x.lecturas.map(l => `<tr><td>${esc(l.hora)}</td><td>${numTxt(l.temp)} °C</td><td>${esc(l.nota||"")}</td></tr>`).join("")}
+      </tbody></table>` : ""}
+    </div>`).join("");
+  return `<div class="sec"><h3>Horno</h3>
+    <div class="chip-fila">
+      <span class="chip horno">${t.horno.ingresos || 0} ingreso(s)</span>
+      ${t.etapa === "horno" ? `<span class="chip warn">${diasDesde(desdeEtapa(t))} día(s) en horno</span>` : ""}
+      ${u ? `<span class="chip ${u.resultado==="aprobado"?"ok":"mal"}">Último aislamiento: ${esc(u.resultado)}</span>` : ""}
+    </div>
+    <div class="btn-fila">
+      ${t.etapa === "horno" && !abierta ? `<button class="btn" type="button" data-accion="hornoEntrada" data-id="${t.id}">Registrar ingreso al Horno</button>` : ""}
+      ${abierta ? `<button class="btn" type="button" data-accion="hornoSalida" data-id="${t.id}">Salir del Horno</button>` : ""}
+    </div>
+    ${abierta ? `<form class="en-linea" data-accion="agregarTemp">
+      <input type="number" name="temp" step="any" min="0" placeholder="°C" required aria-label="Temperatura">
+      <input name="nota" placeholder="Nota (opcional)" aria-label="Nota">
+      <button class="btn sm" type="submit">+ Temperatura</button>
+    </form>
+    <p class="aviso">Lecturas de este ingreso: ${(abierta.lecturas||[]).length}. Registra la temperatura al menos una vez por turno.</p>` : ""}
+    ${filas || `<p class="aviso">Todavía no hay ingresos al horno.</p>`}
+  </div>`;
+}
+function htmlSecado(t){
+  const ciclos = t.secado.ciclos || [];
+  const u = umbral();
+  const ult = ultimoCiclo(t);
+  const puedeRegistrar = t.etapa === "pruebas_finales" && (!ult || ult.resultado !== "aprobado");
+  const lista = ciclos.map(c => `
+    <div class="visita">
+      <div class="visita-cab"><b>Aislamiento #${c.n}</b><span class="chip ${c.resultado==="aprobado"?"ok":"mal"}">${c.resultado==="aprobado"?"Aprobado":"Bajo"}</span></div>
+      <div class="aviso">${esc(c.fecha)} ${esc(c.hora)} · mínimo ${numTxt(c.minimo)} MΩ · umbral ${numTxt(c.umbral)} MΩ</div>
+      <div class="aviso">AT-BT ${numTxt(c.pruebas.atbt.v)} MΩ · AT-T ${numTxt(c.pruebas.att.v)} MΩ · BT-T ${numTxt(c.pruebas.btt.v)} MΩ</div>
+      <div class="fotos">${["atbt","att","btt"].map(k => c.pruebas[k].foto ? `<img src="${c.pruebas[k].foto}" alt="Foto ${k}">` : "").join("")}</div>
+      ${c.obs ? `<div class="aviso">${esc(c.obs)}</div>` : ""}
+    </div>`).join("");
+  return `<div class="sec"><h3>Aislamiento (post-horno)</h3>
+    <div class="chip-fila"><span class="chip">Umbral ${numTxt(u)} MΩ</span><span class="chip">${ciclos.length} ciclo(s)</span></div>
+    ${puedeRegistrar ? `<form data-accion="guardarSecado">
+      <p class="aviso">Registra las tres pruebas con la foto del medidor. Si el mínimo queda por debajo de ${numTxt(u)} MΩ, el equipo vuelve al horno automáticamente.</p>
+      ${PRUEBAS_SECADO.map(p => `<div class="prueba"><div class="prueba-cab"><span>${p.nom}</span><span class="chip">${esc(p.desc)}</span></div>
+        <div class="grid2">
+          <label>Valor (MΩ) *<input type="number" name="${p.k}" step="any" min="0.01" required></label>
+          <label>Foto del medidor *<input type="file" name="f_${p.k}" accept="image/*" capture="environment" required></label>
+        </div></div>`).join("")}
+      <label>Observación<input name="obs"></label>
+      <button class="btn" type="submit">Guardar aislamiento</button>
+    </form>` : ""}
+    ${lista || `<p class="aviso">Sin pruebas de aislamiento registradas.</p>`}
+  </div>`;
+}
+function htmlFinales(t){
+  const enPruebas = t.etapa === "pruebas_finales";
+  return `<div class="sec"><h3>Pruebas finales</h3>
+    <div class="chip-fila"><span class="chip">${PRUEBAS_FINALES.filter(p => estadoPrueba(t,p.k)==="registrada").length}/6 registradas</span>
+      ${faltantesFinales(t).length ? `<span class="chip mal">Faltan: ${esc(faltantesFinales(t).join(", "))}</span>` : `<span class="chip ok">Completas</span>`}
+    </div>
+    ${PRUEBAS_FINALES.map(p => {
+      const est = estadoPrueba(t, p.k);
+      const d = (t.finales||{})[p.k] || {};
+      return `<div class="prueba ${est==="na"?"na":""}">
+        <div class="prueba-cab"><span>${esc(p.nom)}</span>
+          <span class="chip ${est==="registrada"?"ok":est==="na"?"warn":"mal"}">${est==="registrada"?"Registrada":est==="na"?"No aplica":"Pendiente"}</span>
+        </div>
+        ${d.estado==="na" && d.naMotivo ? `<div class="aviso">No aplica: ${esc(d.naMotivo)}</div>` : ""}
+        ${enPruebas ? `<form data-accion="guardarFinal" data-id="${t.id}" data-prueba="${p.k}">
+          <div class="campos grid2">
+            ${p.campos.map(c => `<label>${esc(c.l)}<input name="${c.k}" value="${esc((d.campos||{})[c.k]||"")}" inputmode="decimal"></label>`).join("")}
+          </div>
+          <label>Foto del medidor<input type="file" accept="image/*" capture="environment"></label>
+          <div class="linea"><input type="checkbox" name="na" ${d.estado==="na"?"checked":""}><span>No aplica</span>
+            <input name="naMotivo" placeholder="Motivo" value="${esc(d.naMotivo||"")}" style="flex:1 1 120px;margin:0"></div>
+          <button class="btn sm" type="submit" style="margin-top:8px">Guardar ${esc(p.nom)}</button>
+        </form>` : (d.estado==="registrada" ? `<div class="aviso">${p.campos.map(c => (d.campos||{})[c.k] ? esc(c.l)+": "+esc(d.campos[c.k]) : "").filter(Boolean).join(" · ")} · ${esc(d.fecha||"")}</div>` : `<div class="aviso">Sin registrar.</div>`)}
+      </div>`;
+    }).join("")}
+  </div>`;
+}
+function htmlEntrega(t){
+  if(t.entrega){
+    return `<div class="sec"><h3>Entrega</h3>
+      <p class="aviso">Entregado el ${esc(t.entrega.fecha)} a ${esc(t.entrega.recibidoPor||"—")}. ${esc(t.entrega.obs||"")}</p>
+    </div>`;
   }
-  if(accion==="nuevoM"){
-    const foto = f.foto.files[0] ? await comprimirImagen(f.foto.files[0]) : "";
-    db.materiales.push({id:nuevoId(), nombre:d.nombre, cantidad:Number(d.cantidad)||0, unidad:d.unidad, ubicacion:d.ubicacion, costo:Number(d.costo)||0, tipo:d.tipo, foto});
-  }
-  if(accion==="nuevoP"){
-    db.personal.push({id:nuevoId(), nombre:d.nombre, cargo:d.cargo, telefono:d.telefono, tipoPago:d.tipoPago, valor:Number(d.valor)||0, afiliacion:d.afiliacion, cajas:[]});
-  }
-  if(accion==="nuevoD"){
-    const file = f.archivo.files[0];
-    if(file.size > 3*1024*1024){ alert("El archivo supera 3 MB. Guárdalo en Drive o en el computador."); return; }
-    db.documentos.push({id:nuevoId(), nombre:file.name, tamano:file.size, categoria:d.categoria, descripcion:d.descripcion, fecha:hoy(), datos: await leerArchivo(file)});
-  }
-  guardar(); render();
-});
+  return `<div class="sec"><h3>Entrega</h3>
+    <p class="aviso">El equipo está listo. Registra la entrega para cerrar el trabajo.</p>
+    <button class="btn" type="button" data-accion="entrega" data-id="${t.id}">Registrar entrega</button>
+  </div>`;
+}
+function htmlHistorial(t){
+  const h = (t.historial || []).slice().reverse();
+  return `<div class="sec"><h3>Historial</h3>
+    <ul class="timeline">
+      ${h.map(x => `<li><b>${esc(ETAPA[x.a] ? ETAPA[x.a].nom : (x.a || "Registro"))}</b>
+        <span>${esc(x.fecha)} ${esc(x.hora||"")}${x.de && ETAPA[x.de] ? " · desde " + esc(ETAPA[x.de].nom) : ""}</span>
+        ${x.nota ? `<span>${esc(x.nota)}</span>` : ""}</li>`).join("")}
+    </ul>
+  </div>`;
+}
+function htmlMover(t){
+  const actual = idx(t.etapa);
+  return `<div class="sec">
+    <p class="aviso">El equipo está en <b>${esc((ETAPA[t.etapa]||ENTREGADO).nom)}</b>. Toca la columna de destino.
+    Si el destino está lejos, el equipo avanza paso a paso y se detiene en la primera regla que falte.</p>
+    <div class="mover-lista">
+      ${ETAPAS.map(e => {
+        const act = e.id === t.etapa;
+        return `<button type="button" class="mover-op ${act?"act":""}" data-accion="moverA" data-id="${t.id}" data-destino="${e.id}" ${act?"disabled":""}>
+          <span class="mover-punto" style="background:${e.color}"></span>
+          <span class="mover-nom">${esc(e.nom)}</span>
+          <span class="mover-sub">${esc(e.sub)}</span>
+          ${act?`<span class="chip">Aquí</span>`:""}
+        </button>`;
+      }).join("")}
+    </div>
+    <div class="btn-fila"><button class="btn suave" type="button" data-accion="cerrarModal">Cancelar</button></div>
+  </div>`;
+}
+function htmlHornoEntrada(t){
+  return `<form data-accion="confirmarHornoEntrada" data-id="${t.id}">
+    <p class="aviso">Ingreso #${(t.horno.ingresos||0)+1}. Registra la temperatura del horno al momento de cargar el equipo.</p>
+    <label>Temperatura (°C) *<input type="number" name="temp" step="any" min="0" required autofocus></label>
+    <label>Nota<input name="nota" placeholder="Ej: horno 2, carga completa"></label>
+    <div class="btn-fila">
+      <button class="btn" type="submit">Registrar ingreso</button>
+      <button class="btn suave" type="button" data-accion="cerrarModal">Cancelar</button>
+    </div>
+  </form>`;
+}
+function htmlHornoSalida(t){
+  const v = visitaAbierta(t);
+  return `<form data-accion="confirmarHornoSalida" data-id="${t.id}">
+    <p class="aviso">${v ? "Ingreso #" + v.n + " · entrada " + esc(v.entrada.fecha) + " " + esc(v.entrada.hora) + " · " + numTxt(v.entrada.temp) + " °C" : ""}</p>
+    <p class="aviso">Al salir, el equipo pasa a <b>Armado</b>.</p>
+    <label>Temperatura de salida (°C) *<input type="number" name="temp" step="any" min="0" required autofocus></label>
+    <label>Nota<input name="nota" placeholder="Tiempo total, observaciones"></label>
+    <div class="btn-fila">
+      <button class="btn" type="submit">Salir del Horno</button>
+      <button class="btn suave" type="button" data-accion="cerrarModal">Cancelar</button>
+    </div>
+  </form>`;
+}
+function htmlEntregaForm(t){
+  return `<form data-accion="confirmarEntrega" data-id="${t.id}">
+    <label>Fecha de entrega *<input type="date" name="fecha" value="${fechaLocal()}" required></label>
+    <label>Recibido por *<input name="recibidoPor" required placeholder="Nombre de quien recibe"></label>
+    <label>Observaciones<input name="obs"></label>
+    <div class="btn-fila">
+      <button class="btn" type="submit">Confirmar entrega</button>
+      <button class="btn suave" type="button" data-accion="cerrarModal">Cancelar</button>
+    </div>
+  </form>`;
+}
 
-main.addEventListener("click", e => {
-  const b = e.target.closest("[data-accion]"); if(!b || b.tagName==="SELECT" || b.tagName==="FORM") return;
-  const a = b.dataset.accion, id = b.dataset.id;
-
-  if(a==="borrarT" && confirm("¿Eliminar este transformador?")) db.transformadores = db.transformadores.filter(x=>x.id!==id);
-  if(a==="borrarM" && confirm("¿Eliminar este material?")) db.materiales = db.materiales.filter(x=>x.id!==id);
-  if(a==="borrarP" && confirm("¿Eliminar esta persona?")) db.personal = db.personal.filter(x=>x.id!==id);
-  if(a==="borrarD" && confirm("¿Eliminar este documento?")) db.documentos = db.documentos.filter(x=>x.id!==id);
-
-  if(a==="movM"){
-    const m = db.materiales.find(x=>x.id===id);
+/* ---------- 12. Eventos ---------- */
+function ejecutar(a, b){
+  const id = b.dataset.id;
+  if(a === "cerrarModal"){ cerrarModal(); return; }
+  if(a === "nuevo"){ abrirModal("nuevo", null); return; }
+  if(a === "ficha"){ abrirModal("ficha", id); return; }
+  if(a === "moverTarjeta"){ abrirModal("mover", id); return; }
+  if(a === "moverA"){ moverHacia(id, b.dataset.destino); return; }
+  if(a === "toggleApilar"){
+    apilarColumnas = !apilarColumnas;
+    try{ localStorage.setItem("gestionApilar", apilarColumnas ? "1" : "0"); }catch(e){}
+    render(); return;
+  }
+  if(a === "avanzar"){ avanzar(id); return; }
+  if(a === "atras"){ retroceder(id); return; }
+  if(a === "hornoEntrada"){ abrirModal("hornoEntrada", id); return; }
+  if(a === "hornoSalida"){ abrirModal("hornoSalida", id); return; }
+  if(a === "entrega"){ abrirModal("entrega", id); return; }
+  if(a === "cambiarRuta"){ cambiarRuta(id, b.dataset.ruta); return; }
+  if(a === "aprobarCliente"){
+    const t = tGet(id); if(!t) return;
+    const quien = prompt("¿Quién aprobó (nombre)?", "");
+    if(quien === null) return;
+    const medio = prompt("Medio de aprobación (WhatsApp, correo, verbal, orden de compra):", "WhatsApp");
+    if(medio === null) return;
+    t.aprobacionCliente = {estado:"aprobado", fecha:fechaLocal(), hora:horaLocal(), quien:quien||"", medio:medio||"", obs:""};
+    t.requiereAprobacion = false;
+    guardar(); render(); return;
+  }
+  if(a === "rechazarCliente"){
+    const t = tGet(id); if(!t) return;
+    const obs = prompt("Motivo del rechazo:", "");
+    if(obs === null) return;
+    t.aprobacionCliente = {estado:"rechazado", fecha:fechaLocal(), hora:horaLocal(), quien:"", medio:"", obs:obs||""};
+    guardar(); render(); return;
+  }
+  if(a === "borrarT" && confirm("¿Eliminar este transformador y todo su historial?")){
+    db.transformadores = db.transformadores.filter(x => x.id !== id);
+    guardar(); render(); return;
+  }
+  if(a === "borrarM" && confirm("¿Eliminar este material?")){
+    db.materiales = db.materiales.filter(x => x.id !== id); guardar(); render(); return;
+  }
+  if(a === "borrarP" && confirm("¿Eliminar esta persona?")){
+    db.personal = db.personal.filter(x => x.id !== id); guardar(); render(); return;
+  }
+  if(a === "borrarD" && confirm("¿Eliminar este documento?")){
+    db.documentos = db.documentos.filter(x => x.id !== id); guardar(); render(); return;
+  }
+  if(a === "movM"){
+    const m = db.materiales.find(x => x.id === id);
     const cant = Number(prompt("¿Cuántas unidades (" + m.unidad + ")?"));
-    if(cant>0){ m.cantidad = Math.max(0, m.cantidad + cant*Number(b.dataset.signo)); }
+    if(cant > 0) m.cantidad = Math.max(0, m.cantidad + cant*Number(b.dataset.signo));
+    guardar(); render(); return;
   }
-  if(a==="nuevaCaja"){
-    const p = db.personal.find(x=>x.id===id);
+  if(a === "nuevaCaja"){
+    const p = db.personal.find(x => x.id === id);
     const monto = Number(prompt("Monto entregado:"));
-    if(monto>0){ const concepto = prompt("Para qué (material o gasto):") || ""; p.cajas = [...(p.cajas||[]), {id:nuevoId(), fecha:hoy(), monto, concepto, legalizada:false}]; }
+    if(monto > 0){
+      const concepto = prompt("Para qué (material o gasto):") || "";
+      p.cajas = [...(p.cajas||[]), {id:nuevoId(), fecha:hoy(), monto:monto, concepto:concepto, legalizada:false}];
+    }
+    guardar(); render(); return;
   }
-  if(a==="legalizar"){
-    const p = db.personal.find(x=>x.id===id);
-    const c = p.cajas.find(x=>x.id===b.dataset.caja); if(c) c.legalizada = true;
+  if(a === "legalizar"){
+    const p = db.personal.find(x => x.id === id);
+    const c = p && p.cajas.find(x => x.id === b.dataset.caja);
+    if(c) c.legalizada = true;
+    guardar(); render(); return;
   }
-
-  if(a==="exportar"){
+  if(a === "exportar"){
     const blob = new Blob([JSON.stringify(db, null, 2)], {type:"application/json"});
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
@@ -347,27 +1478,213 @@ main.addEventListener("click", e => {
     link.click();
     return;
   }
-  if(a==="importar"){
-    const file = document.getElementById("archivoImport").files[0];
+  if(a === "importar"){
+    const file = $("archivoImport") && $("archivoImport").files[0];
     if(!file){ alert("Selecciona un archivo .json"); return; }
     const r = new FileReader();
     r.onload = () => {
-      try {
+      try{
         const datos = JSON.parse(r.result);
         if(!confirm("¿Reemplazar los datos actuales con este respaldo?")) return;
-        db = {...vacio(), ...datos}; guardar(); render(); alert("Respaldo restaurado.");
-      } catch(err){ alert("El archivo no es un respaldo válido."); }
+        db = Object.assign(vacio(), datos, {config:Object.assign({umbralSecado:UMBRAL_DEF}, datos.config||{})});
+        migrar(); guardar(); render();
+        alert("Respaldo restaurado.");
+      }catch(err){ alert("El archivo no es un respaldo válido."); }
     };
     r.readAsText(file); return;
   }
-  if(a==="borrarTodo" && confirm("¿Borrar TODOS los datos de este navegador? Haz un respaldo antes.")){
-    db = vacio(); localStorage.removeItem(CLAVE);
+  if(a === "borrarEjemplos"){
+    if(!confirm("¿Quitar las tarjetas de ejemplo? Solo se eliminan los registros marcados como ejemplo.")) return;
+    db.transformadores = db.transformadores.filter(x => !x.ejemplo);
+    guardar(); render(); return;
   }
+  if(a === "borrarTodo" && confirm("¿Borrar TODOS los datos de este navegador? Haz un respaldo antes.")){
+    db = vacio();
+    db.config.ejemplosSembrados = true;
+    localStorage.setItem(CLAVE, JSON.stringify(db));
+    render(); return;
+  }
+}
+async function manejarSubmit(e){
+  e.preventDefault();
+  const f = e.target, accion = f.dataset.accion;
+  if(!accion) return;
+  const d = Object.fromEntries(new FormData(f));
+  const id = f.dataset.id;
 
+  if(accion === "nuevoT"){
+    const fotos = [];
+    if(f.fotos && f.fotos.files){
+      for(const file of f.fotos.files) fotos.push(await comprimirImagen(file, 900, 0.6));
+    }
+    const t = {
+      id:nuevoId(), placa:String(d.placa||"").trim(), cliente:String(d.cliente||"").trim(),
+      telefono:d.telefono||"", kva:d.kva||"", voltaje:d.voltaje||"", tipo:d.tipo||"Aceite",
+      llegada:d.llegada||fechaLocal(), falla:d.falla||"", valor:0,
+      etapa:"ingresados", ruta:d.ruta||"", rutaOriginal:d.ruta||"",
+      tecnico:d.tecnico||"", fotos:fotos,
+      diagnostico:{nota:"", tecnico:"", fecha:""},
+      cotizacion:{detalle:""},
+      aprobacionCliente:null, requiereAprobacion:false, cambiosRuta:[],
+      horno:{ingresos:0, visitas:[]}, secado:{ciclos:[]}, finales:{}, entrega:null,
+      historial:[{fecha:d.llegada||fechaLocal(), hora:horaLocal(), de:"", a:"ingresados", nota:"Ingreso del equipo"}]
+    };
+    db.transformadores.push(t);
+    guardar(); cerrarModal(); render();
+    return;
+  }
+  if(accion === "guardarDatos"){
+    const t = tGet(id); if(!t) return;
+    t.placa = String(d.placa||"").trim() || t.placa;
+    t.cliente = String(d.cliente||"").trim() || t.cliente;
+    t.telefono = d.telefono||""; t.kva = d.kva||""; t.voltaje = d.voltaje||"";
+    t.tipo = d.tipo||t.tipo; t.llegada = d.llegada||t.llegada; t.tecnico = d.tecnico||"";
+    t.falla = d.falla||"";
+    guardar(); render(); return;
+  }
+  if(accion === "guardarDiagnostico"){
+    const t = tGet(id); if(!t) return;
+    t.diagnostico = {nota:String(d.nota||"").trim(), tecnico:d.tecnico||"", fecha:fechaLocal(), hora:horaLocal()};
+    guardar(); render(); return;
+  }
+  if(accion === "guardarCotizacion"){
+    const t = tGet(id); if(!t) return;
+    const v = numOrNull(d.valor);
+    t.valor = v === null ? 0 : v;
+    t.cotizacion = {detalle:d.detalle||"", fecha:fechaLocal()};
+    guardar(); render(); return;
+  }
+  if(accion === "confirmarHornoEntrada"){
+    ingresarHorno(id, d.temp, d.nota);
+    cerrarModal(); render(); return;
+  }
+  if(accion === "confirmarHornoSalida"){
+    salirHorno(id, d.temp, d.nota);
+    cerrarModal(); render(); return;
+  }
+  if(accion === "agregarTemp"){
+    agregarTemp(id, d.temp, d.nota);
+    return;
+  }
+  if(accion === "guardarSecado"){
+    const fotos = {};
+    for(const p of PRUEBAS_SECADO){
+      const inp = f.querySelector('input[name="f_' + p.k + '"]');
+      fotos[p.k] = (inp && inp.files && inp.files[0]) ? await comprimirImagen(inp.files[0], 720, 0.55) : "";
+    }
+    registrarSecado(id, {atbt:d.atbt, att:d.att, btt:d.btt}, fotos, d.obs);
+    return;
+  }
+  if(accion === "guardarFinal"){
+    await guardarFinal(id, f.dataset.prueba, f);
+    return;
+  }
+  if(accion === "confirmarEntrega"){
+    registrarEntrega(id, d); return;
+  }
+  if(accion === "configSecado"){
+    const u = numOrNull(d.umbral);
+    if(u === null || u <= 0){ alert("El umbral debe ser mayor que cero."); return; }
+    db.config = db.config || {}; db.config.umbralSecado = u;
+    guardar(); render(); return;
+  }
+  if(accion === "nuevoM"){
+    const foto = (f.foto && f.foto.files[0]) ? await comprimirImagen(f.foto.files[0], 900, 0.6) : "";
+    db.materiales.push({id:nuevoId(), nombre:d.nombre, cantidad:Number(d.cantidad)||0, unidad:d.unidad, ubicacion:d.ubicacion, costo:Number(d.costo)||0, tipo:d.tipo, foto:foto});
+  }
+  if(accion === "nuevoP"){
+    db.personal.push({id:nuevoId(), nombre:d.nombre, cargo:d.cargo, telefono:d.telefono, tipoPago:d.tipoPago, valor:Number(d.valor)||0, afiliacion:d.afiliacion, cajas:[]});
+  }
+  if(accion === "nuevoD"){
+    const file = f.archivo.files[0];
+    if(file.size > 3*1024*1024){ alert("El archivo supera 3 MB. Guárdalo en Drive o en el computador."); return; }
+    db.documentos.push({id:nuevoId(), nombre:file.name, tamano:file.size, categoria:d.categoria, descripcion:d.descripcion, fecha:hoy(), datos:await leerArchivo(file)});
+  }
   guardar(); render();
+}
+
+/* Delegación de eventos */
+const contenido = $("contenido");
+contenido.addEventListener("click", e => {
+  const b = e.target.closest("[data-accion]");
+  if(b){ e.preventDefault(); ejecutar(b.dataset.accion, b); return; }
+  const tarj = e.target.closest(".tarjeta");
+  if(tarj) abrirModal("ficha", tarj.dataset.id);
 });
+contenido.addEventListener("submit", manejarSubmit);
+contenido.addEventListener("input", e => {
+  if(e.target.id === "buscarTablero"){ filtroTablero = e.target.value; pintarTablero(); }
+  if(e.target.id === "buscarT") listaT();
+});
+contenido.addEventListener("change", e => {
+  if(e.target.name === "na"){
+    const blk = e.target.closest(".prueba");
+    if(blk) blk.classList.toggle("na", e.target.checked);
+  }
+});
+
+/* Arrastrar y soltar entre columnas (escritorio) */
+let arrastreId = null;
+function limpiarSoltar(){
+  document.querySelectorAll(".col.soltar-a").forEach(c => c.classList.remove("soltar-a"));
+}
+contenido.addEventListener("dragstart", e => {
+  const tarj = e.target.closest(".tarjeta");
+  if(!tarj) return;
+  arrastreId = tarj.dataset.id;
+  tarj.classList.add("arrastrando");
+  try{ e.dataTransfer.setData("text/plain", arrastreId); e.dataTransfer.effectAllowed = "move"; }catch(err){}
+});
+contenido.addEventListener("dragend", e => {
+  const tarj = e.target.closest(".tarjeta");
+  if(tarj) tarj.classList.remove("arrastrando");
+  limpiarSoltar();
+  arrastreId = null;
+});
+contenido.addEventListener("dragover", e => {
+  const col = e.target.closest(".col");
+  if(!col || !arrastreId) return;
+  e.preventDefault();
+  try{ e.dataTransfer.dropEffect = "move"; }catch(err){}
+  document.querySelectorAll(".col.soltar-a").forEach(c => { if(c !== col) c.classList.remove("soltar-a"); });
+  col.classList.add("soltar-a");
+});
+contenido.addEventListener("dragleave", e => {
+  const col = e.target.closest(".col");
+  if(col && !col.contains(e.relatedTarget)) col.classList.remove("soltar-a");
+});
+contenido.addEventListener("drop", e => {
+  const col = e.target.closest(".col");
+  if(!col || !arrastreId) return;
+  e.preventDefault();
+  const id = arrastreId;
+  arrastreId = null;
+  limpiarSoltar();
+  moverHacia(id, col.dataset.etapaCol);
+});
+$("menu").addEventListener("click", e => {
+  const b = e.target.closest("[data-vista]"); if(!b) return;
+  vista = b.dataset.vista; render();
+  if(vista === "equipos") listaT();
+});
+
+const mcuerpo = $("modal-cuerpo");
+mcuerpo.addEventListener("click", e => {
+  const b = e.target.closest("[data-accion]");
+  if(b){ e.preventDefault(); ejecutar(b.dataset.accion, b); }
+});
+mcuerpo.addEventListener("submit", manejarSubmit);
+mcuerpo.addEventListener("change", e => {
+  if(e.target.name === "na"){
+    const blk = e.target.closest(".prueba");
+    if(blk) blk.classList.toggle("na", e.target.checked);
+  }
+});
+$("modal-x").addEventListener("click", cerrarModal);
+$("modal").addEventListener("click", e => { if(e.target.id === "modal") cerrarModal(); });
+document.addEventListener("keydown", e => { if(e.key === "Escape" && modalActual) cerrarModal(); });
 
 render();
 </script>
 </body>
-  </html>
+</html>

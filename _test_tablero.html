@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Prueba automatica del tablero</title>
+<style>
+body{font-family:system-ui,Segoe UI,Arial,sans-serif;margin:0;padding:12px;background:#111;color:#eee}
+#out{white-space:pre-wrap;font-family:Consolas,monospace;font-size:13px;line-height:1.5}
+iframe{width:1400px;height:900px;border:0;background:#fff}
+.pass{color:#4ade80}.fail{color:#f87171}
+</style>
+</head>
+<body>
+<pre id="out">iniciando...</pre>
+<iframe id="app" src="index.html"></iframe>
+<script>
+const res = [];
+function ping(paso){ try{ fetch("/__paso__?p=" + encodeURIComponent(paso), {cache:"no-store"}); }catch(e){} }
+function log(ok, msg){
+  res.push({ok:ok, msg:msg});
+  ping((ok?"PASS":"FAIL") + " " + msg);
+  document.getElementById("out").textContent = res.map(r => (r.ok?"PASS":"FAIL") + " - " + r.msg).join("\n")
+    + "\n\nRESUMEN: " + res.filter(r=>r.ok).length + "/" + res.length + " PASS"
+    + "\nRESULTADO_FINAL: " + (res.every(r=>r.ok) ? "TODO_OK" : "HAY_FALLOS");
+}
+function run(){
+  const f = document.getElementById("app");
+  const w = f.contentWindow, d = f.contentDocument;
+  const avisos = [];
+  ping("arranque");
+  try{
+    w.alert = m => avisos.push(String(m));
+    w.confirm = m => { avisos.push("CONFIRM: " + m); return true; };
+    w.prompt = (m, def) => { avisos.push("PROMPT: " + m); return def || "prueba"; };
+
+    const cols = d.querySelectorAll(".col");
+    log(cols.length === 9, "El tablero tiene 9 columnas (encontradas " + cols.length + ")");
+
+    const tarjetas = d.querySelectorAll(".tarjeta");
+    log(tarjetas.length >= 3, "Se renderizan tarjetas (" + tarjetas.length + ")");
+
+    const primera = tarjetas[0];
+    const placa = primera.querySelector(".t-placa");
+    const cli = primera.querySelector(".t-cli");
+    const fecha = primera.querySelector(".t-fecha");
+    log(!!placa && placa.textContent.trim().length > 0, "Muestra la placa: " + (placa?placa.textContent.trim():""));
+    log(!!cli && cli.textContent.trim().length > 0, "Muestra el cliente: " + (cli?cli.textContent.trim():""));
+    log(!!fecha && /Ingres\u00f3\s+\d{2}\/\d{2}\/\d{4}/.test(fecha.textContent), "Muestra la fecha de ingreso: " + (fecha?fecha.textContent.trim():""));
+    log([...d.querySelectorAll(".tarjeta .t-fecha")].every(e => /Ingres\u00f3\s+\d{2}\/\d{2}\/\d{4}/.test(e.textContent)), "Todas las tarjetas tienen fecha valida");
+
+    log([...tarjetas].every(t => t.getAttribute("draggable") === "true"), "Todas las tarjetas son arrastrables");
+    const botonesMover = d.querySelectorAll('[data-accion="moverTarjeta"]');
+    log(botonesMover.length === tarjetas.length, "Cada tarjeta tiene boton Mover (" + botonesMover.length + "/" + tarjetas.length + ")");
+
+    const D = w.eval("db");
+    const id102 = D.transformadores.find(t => t.etapa === "ingresados").id;
+    ping("abrir modal mover");
+    w.abrirModal("mover", id102);
+    const ops = d.querySelectorAll(".mover-op");
+    log(ops.length === 9, "El selector Mover lista las 9 columnas (" + ops.length + ")");
+    log(d.getElementById("modal").classList.contains("abierto"), "El modal Mover se abre");
+    const activa = d.querySelector(".mover-op.act");
+    log(!!activa && activa.textContent.includes("Ingresados"), "El modal marca la columna actual");
+    w.cerrarModal();
+
+    ping("mover adelante");
+    const antes = w.tGet(id102).etapa;
+    w.moverHacia(id102, "pruebas_iniciales");
+    const despues = w.tGet(id102).etapa;
+    log(antes === "ingresados" && despues === "pruebas_iniciales", "Mover a la columna siguiente: " + antes + " -> " + despues);
+    const enCol = d.querySelector('[data-etapa-col="pruebas_iniciales"] .tarjeta[data-id="' + id102 + '"]');
+    log(!!enCol, "La tarjeta aparece en Pruebas Iniciales tras mover");
+    const hist = w.tGet(id102).historial;
+    log(hist[hist.length-1].a === "pruebas_iniciales", "El movimiento queda en el historial");
+
+    ping("bloqueo");
+    const idBloq = w.nuevoId();
+    D.transformadores.push({
+      id:idBloq, placa:"TX-BLOQUEO", cliente:"Prueba bloqueo", kva:"50",
+      etapa:"espera_cliente", ruta:"reparacion", llegada:w.fechaLocal(),
+      valor:0, aprobacionCliente:null, cambiosRuta:[], fotos:[],
+      diagnostico:{nota:"ok", tecnico:"test", fecha:w.fechaLocal()},
+      cotizacion:{detalle:""}, horno:{ingresos:0,visitas:[]}, secado:{ciclos:[]},
+      finales:{}, entrega:null, historial:[{fecha:w.fechaLocal(),hora:"09:00",de:"pruebas_iniciales",a:"espera_cliente",nota:""}]
+    });
+    w.guardar(); w.render();
+    avisos.length = 0;
+    w.moverHacia(idBloq, "reparacion");
+    log(w.tGet(idBloq).etapa === "espera_cliente", "Una tarjeta bloqueada NO se mueve");
+    log(avisos.some(a => /aprobaci|valor cotizado/i.test(a)), "Se explica el bloqueo: " + (avisos[0]||""));
+
+    ping("apilar");
+    w.eval("apilarColumnas = true"); w.render();
+    const tabla = d.getElementById("tablero");
+    const dir = w.getComputedStyle(tabla).flexDirection;
+    log(dir === "column", "Vista apilada: flex-direction " + dir);
+    log(d.body.classList.contains("apilar"), "Se aplica la clase body.apilar");
+    const anchoCol = d.querySelector(".col").getBoundingClientRect().width;
+    const anchoTab = tabla.getBoundingClientRect().width;
+    log(Math.abs(anchoCol - anchoTab) < 30, "En apilado la columna ocupa el ancho (" + Math.round(anchoCol) + "/" + Math.round(anchoTab) + ")");
+    d.querySelector('[data-accion="toggleApilar"]').click();
+    log(!d.body.classList.contains("apilar"), "El boton devuelve a vista horizontal");
+
+    ping("movil");
+    f.style.width = "390px"; f.style.height = "844px";
+    w.eval("apilarColumnas = false"); w.render();
+    const colMovil = d.querySelector(".col").getBoundingClientRect().width;
+    log(colMovil > 280 && colMovil <= 345, "En movil (390px) la columna mide " + Math.round(colMovil) + "px");
+
+    w.abrirModal("mover", id102);
+    const caja = d.querySelector(".modal-caja").getBoundingClientRect();
+    log(caja.width <= 392, "El modal cabe en el celular (" + Math.round(caja.width) + "px)");
+    w.cerrarModal();
+
+    f.style.width = "1400px"; f.style.height = "900px";
+    ping("fin");
+  }catch(e){
+    log(false, "Excepcion: " + e.message);
+  }
+  ping("RESULTADO " + (res.every(r=>r.ok) ? "TODO_OK" : "HAY_FALLOS"));
+}
+window.addEventListener("load", () => setTimeout(run, 700));
+</script>
+</body>
+</html>
